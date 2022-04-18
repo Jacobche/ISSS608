@@ -17,4 +17,13 @@ navbar:
       - text: "DataViz Makeover 2"
         href: "DataViz2"
     - text: "Take-home Exercise"
+      menu:
+      - text: "Take-home Exercise 1"
+        href: "Ex1"
+      - text: "Take-home Exercise 2"
+        href: "Ex2"
+      - text: "Take-home Exercise 3"
+        href: "Ex3"
+      - text: "Take-home Exercise 4"
+        href: "Ex4"
 output: distill::distill_article
