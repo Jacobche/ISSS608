@@ -19,7 +19,7 @@ navbar:
     - text: "Take-home Exercise"
       menu:
       - text: "Take-home Exercise 1"
-        href: "Ex1"
+        href: "th_ex/th_ex1.html"
       - text: "Take-home Exercise 2"
         href: "Ex2"
       - text: "Take-home Exercise 3"
