@@ -32,7 +32,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'ggdist')
+packages = c('tidyverse', 'ggdist', 'ggridges')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -80,11 +80,26 @@ ggplot(data = participants,
                                         linetype = 'solid',
                                         colour = "white"))
 ```
+# Static Trellis Boxplot
+
+We will examine the joviality distribution of the participants by interest groups by kids status in this data set. The code chunk below plots a bar chart by using `geom_boxplot()` of **ggplot2**.
+
+```{r}
+ggplot(data=participants, 
+       aes(y = joviality, x= interestGroup)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",
+               fun.y="mean",
+               colour ="red",
+               size=3) +
+  facet_grid(haveKids ~.)
+```
+
 # Static Raincoud Plots
 
 [*Joviality*](https://www.vocabulary.com/dictionary/joviality#:~:text=Joviality%20is%20the%20characteristic%20of,dinner%20might%20cheer%20you%20up.) is defined as the characteristic of being cheerful and festive. A higher joviality index would represent a greater level of cheerfulness. 
 
-We will examine the joviality spread of the participants across the education levels in this data set. The code chunk below creates raincloud plots by using `stat_halfeye()` of **ggdist** as well as `geom_boxplot()` of **ggplot2**.
+We will examine the joviality spread of the participants across the education levels in this data set. The code chunk below creates raincloud plots by using `stat_halfeye()` of **ggdist** and `geom_boxplot()` of **ggplot2**.
 
 ```{r}
 ggplot(participants, aes(x = educationLevel, y = joviality)) +
@@ -107,6 +122,20 @@ ggplot(participants, aes(x = educationLevel, y = joviality)) +
   #           dotsize = .1) 
   coord_flip()
 ```
+
+
+# Static Ridge Plot
+
+We will examine the joviality spread of the participants across the interest groups in this data set. The code chunk below creates a ridge plot by using `geom_density_ridges()` of **ggridges**, an ggplot2 extension specially designed to create ridge plot.
+
+```{r}
+ggplot(participants, 
+       aes(x = joviality, y = interestGroup)) + 
+  geom_density_ridges(rel_min_height = 0.01,
+                      scale = 1)
+```
+
+
 
 
 
