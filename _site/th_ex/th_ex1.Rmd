@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this take-home exercise, appropriate static statistical graphics methods are used to reveal the demographic of the city of Engagement, Ohio USA. 
 
-The data should be processed by using appropriate tidyverse family of packages and the statistical graphics must be prepared using ggplot2 and its extensions.
+The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
 
 # Getting Started
 
