@@ -15,18 +15,24 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Overview
 
-In this take-home exercise, appropriate static statistical graphics methods are used to reveal the demographic of the city of Engagement, Ohio USA. 
+In this take-home exercise, appropriate static statistical graphics methods are used to reveal the demographic of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/). 
 
 The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
 
-# Getting Started
+# Sketch of Proposed Design
+
+The picture below shows a sketch of the initial design proposed. 
+
+![](img/image1.jpg)
+
+# Installing & Lauching R Packages
 
 Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
 
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse')
+packages = c('tidyverse', 'ggdist')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -38,19 +44,70 @@ for(p in packages){
 
 # Importing Data
 
-The code chunk below imports *Exam_data.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as an tibble data frame called *exam_data*.
+The code chunk below imports *Participants.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as an tibble data frame called *participants*.
 
 ```{r}
-exam_data <- read_csv("data/Exam_data.csv")
+participants <- read_csv("data/Participants.csv")
+
+glimpse(participants)
 ```
 
-# A Simple Bar Chart
+# Static Bar Chart
 
-The code chunk below plots a bar chart by using geom_bar() of ggplot2.
+We will examine the education level of the participants in this data set. The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**.
 
 ```{r}
-ggplot(data = exam_data,
-       aes(x = RACE)) +
-  geom_bar()
+ggplot(data = participants,
+       aes(x=reorder(educationLevel, educationLevel, function(x)-length(x)))) +
+  geom_bar() +
+  ylim(0,550) +
+  geom_text(stat="count", 
+      aes(label=paste0(..count.., " (", 
+      round(..count../sum(..count..)*100,
+            1), "%)")),
+      vjust=-1) +
+  xlab("Education Level") +
+  ylab("No. of\nParticipants") +
+  theme(axis.title.y=element_text(angle = 0)) +
+  theme(panel.background = element_rect(fill = "lightblue",
+                                        colour = "lightblue",
+                                        size = 0.5,
+                                        linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, 
+                                        linetype = 'solid',
+                                        colour = "white"), 
+        panel.grid.minor = element_line(size = 0.25, 
+                                        linetype = 'solid',
+                                        colour = "white"))
 ```
+# Static Raincoud Plots
+
+[*Joviality*](https://www.vocabulary.com/dictionary/joviality#:~:text=Joviality%20is%20the%20characteristic%20of,dinner%20might%20cheer%20you%20up.) is defined as the characteristic of being cheerful and festive. A higher joviality index would represent a greater level of cheerfulness. 
+
+We will examine the joviality spread of the participants across the education levels in this data set. The code chunk below creates raincloud plots by using `stat_halfeye()` of **ggdist** as well as `geom_boxplot()` of **ggplot2**.
+
+```{r}
+ggplot(participants, aes(x = educationLevel, y = joviality)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), 
+                     limits = c(0, 1)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA,
+               justification = -.01,
+               position = position_nudge(
+                 x = .15)
+  ) +
+  geom_boxplot(
+    width = .25,
+    outlier.shape = NA
+  ) +
+  # stat_dots(side = "left",
+  #           justification = 0.1,
+  #           binwidth = .1,
+  #           dotsize = .1) 
+  coord_flip()
+```
+
+
+
 
