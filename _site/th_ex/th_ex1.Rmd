@@ -26,7 +26,7 @@ The data are processed by using appropriate **tidyverse** family of packages and
 
 The picture below shows a sketch of the initial design proposed. 
 
-![](img/image1.jpg)
+![](img/image2.jpg)
 
 # Installing & Lauching R Packages
 
