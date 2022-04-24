@@ -35,7 +35,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'ggdist', 'ggridges')
+packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -57,7 +57,23 @@ glimpse(participants)
 
 # Static Bar Chart
 
-We will examine the education level of the participants in this data set. The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**.
+We will examine the household size as well as the education level of the participants in this data set. The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**.
+
+```{r}
+ggplot(data = participants,
+       aes(x=reorder(householdSize, householdSize, function(x)-length(x)))) +
+  geom_bar() +
+  ylim(0,550) +
+  geom_text(stat="count", 
+      aes(label=paste0(..count.., " (", 
+      round(..count../sum(..count..)*100,
+            1), "%)")),
+      vjust=-1) +
+  xlab("Household Size") +
+  ylab("No. of\nParticipants") +
+  ggtitle("Household Size of Participants")
+
+```
 
 ```{r}
 ggplot(data = participants,
@@ -71,21 +87,12 @@ ggplot(data = participants,
       vjust=-1) +
   xlab("Education Level") +
   ylab("No. of\nParticipants") +
-  theme(axis.title.y=element_text(angle = 0)) +
-  theme(panel.background = element_rect(fill = "lightblue",
-                                        colour = "lightblue",
-                                        size = 0.5,
-                                        linetype = "solid"),
-        panel.grid.major = element_line(size = 0.5, 
-                                        linetype = 'solid',
-                                        colour = "white"), 
-        panel.grid.minor = element_line(size = 0.25, 
-                                        linetype = 'solid',
-                                        colour = "white"))
+  ggtitle("Education Level of Participants")
+
 ```
 # Static Trellis Boxplot
 
-We will examine the joviality distribution of the participants by interest groups by kids status in this data set. The code chunk below plots a bar chart by using `geom_boxplot()` of **ggplot2**.
+We will examine the joviality distribution of the participants across interest groups by kids status in this data set. The code chunk below plots a bar chart by using `geom_boxplot()` of **ggplot2**.
 
 ```{r}
 ggplot(data=participants, 
@@ -95,7 +102,8 @@ ggplot(data=participants,
                fun.y="mean",
                colour ="red",
                size=3) +
-  facet_grid(haveKids ~.)
+  facet_grid(haveKids ~.) +
+  ggtitle("Joviality across Interest Groups by Kids Status")
 ```
 
 # Static Raincoud Plots
@@ -119,11 +127,8 @@ ggplot(participants, aes(x = educationLevel, y = joviality)) +
     width = .25,
     outlier.shape = NA
   ) +
-  # stat_dots(side = "left",
-  #           justification = 0.1,
-  #           binwidth = .1,
-  #           dotsize = .1) 
-  coord_flip()
+  coord_flip() +
+  ggtitle("Joviality Spread by Education Level")
 ```
 
 
@@ -135,11 +140,83 @@ We will examine the joviality spread of the participants across the interest gro
 ggplot(participants, 
        aes(x = joviality, y = interestGroup)) + 
   geom_density_ridges(rel_min_height = 0.01,
-                      scale = 1)
+                      scale = 1) +
+  ggtitle("Joviality Spread by Interest Group")
 ```
 
+# Composite Plot
+
+We will combine multiple plots together to have a dashboard view. The code chunk below creates a composite plot by using the **patchwork** package.
+
+Note: p1 - p5 are assigned to plots as shown earlier.
+
+```{r echo = FALSE}
+p1 <- ggplot(data = participants,
+       aes(x=reorder(householdSize, householdSize, function(x)-length(x)))) +
+  geom_bar() +
+  ylim(0,550) +
+  geom_text(stat="count", 
+      aes(label=paste0(..count.., " (", 
+      round(..count../sum(..count..)*100,
+            1), "%)")),
+      vjust=-1) +
+  xlab("Household Size") +
+  ylab("No. of\nParticipants") +
+  ggtitle("Household Size of Participants")
 
 
+p2 <- ggplot(data = participants,
+       aes(x=reorder(educationLevel, educationLevel, function(x)-length(x)))) +
+  geom_bar() +
+  ylim(0,550) +
+  geom_text(stat="count", 
+      aes(label=paste0(..count.., " (", 
+      round(..count../sum(..count..)*100,
+            1), "%)")),
+      vjust=-1) +
+  xlab("Education Level") +
+  ylab("No. of\nParticipants") +
+  ggtitle("Education Level of Participants")
 
 
+p3 <- ggplot(data=participants, 
+       aes(y = joviality, x= interestGroup)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",
+               fun.y="mean",
+               colour ="red",
+               size=3) +
+  facet_grid(haveKids ~.) +
+  ggtitle("Joviality across Interest Groups by Kids Status")
 
+
+p4 <- ggplot(participants, aes(x = educationLevel, y = joviality)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), 
+                     limits = c(0, 1)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA,
+               justification = -.01,
+               position = position_nudge(
+                 x = .15)
+  ) +
+  geom_boxplot(
+    width = .25,
+    outlier.shape = NA
+  ) +
+  coord_flip() +
+  ggtitle("Joviality Spread by Education Level")
+
+
+p5 <- ggplot(participants, 
+       aes(x = joviality, y = interestGroup)) + 
+  geom_density_ridges(rel_min_height = 0.01,
+                      scale = 1) +
+  ggtitle("Joviality Spread by Interest Group")
+```
+
+```{r fig.height = 16, fig.width = 16}
+patchwork <- ((p1 / p2)| p3)/(p4 | p5) + 
+              plot_annotation(tag_levels = 'I', title = 'Demographic of the city of Engagement, Ohio USA')
+patchwork & theme_economist()
+```
