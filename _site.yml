@@ -28,4 +28,4 @@ navbar:
         href: "Ex4"
 output: distill::distill_article
 
-# Note: to update markdown::render_site() at R console
+# Note: to update rmarkdown::render_site() at R console
