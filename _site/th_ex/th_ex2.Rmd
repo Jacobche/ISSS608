@@ -1,7 +1,7 @@
 ---
 title: "Take-home Exercise 2"
 description: |
-  In this Take-home Exercise, I will critic the submission from one of my classmates in terms of clarity and aesthetics, and also attempt to remake the visualisation desgin.
+  In this Take-home Exercise, I will critic the submission from one of my classmates in terms of clarity and aesthetics, and also attempt to remake the visualisation design.
 author:
   - name: Che Xuan 
     url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
@@ -20,11 +20,77 @@ knitr::opts_chunk$set(echo = TRUE,
 
 In this take-home exercise, I will critic [Ding Yanmu](https://dingyanmu.netlify.app/th_ex/th_ex1.html)'s Take-home Exercise 1 submission in terms of clarity and aesthetics. I will also remake the original design by applying the data visualisation principles and best practice we had learnt in Lesson 1 and 2.
 
-# Next
+# Getting Started
 
-End
+We will first install and launch the required R packages using the code chunk below.
+
+```{r}
+packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+We will also import the *Participants.csv* from the data folder into R using the code chunk below.
+
+```{r}
+participants <- read_csv("data/Participants.csv")
+
+glimpse(participants)
+```
+
+# Critic 1
+- Original Design
+
+![](img/image3.jpg)
+
+- Critic
+
+There is a typo with the title as shown in the picture above. This affects the overall aesthetics of the article.
+
+- Makeover
+
+Should be corrected as below:
+
+**2. Data Description**
 
 
+# Critic 2
+- Original Design
 
+![](img/image4.jpg)
 
+- Critic
+
+The orientation of the *age_group* label on the x-axis can be challenging to read. This coincides with one of the **data-ink** principles on graph labeling where the orientation of label should be reader friendly.
+
+- Makeover
+
+We will group the data using the code chunk below
+```{r}
+participants$age_group <- cut(participants$age,
+                                  breaks = c(-Inf,21, 26, 31, 36, 41, 46, 51, 56, Inf),
+                                  labels = c("<20", "21-25", "26-30","31-35", "36-40", 
+                                             "41-45", "46-50","51-55", "56-60"),
+                                  right = FALSE)
+```
+
+The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, withe use of `coord_flip()` to correct the orientation of the label.
+
+```{r}
+ggplot(data = participants,
+       aes(x=age_group)) +
+  geom_bar() +
+  coord_flip() +
+  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, colour="blue", fontface="bold", 
+            position=position_stack(vjust = 1.04)) +
+  xlab("Age Group") +
+  ylab("No. of Participants") +
+  ggtitle("Age Distribution")
+
+```
 
