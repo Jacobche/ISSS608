@@ -25,7 +25,7 @@ In this take-home exercise, I will critic [Ding Yanmu](https://dingyanmu.netlify
 We will first install and launch the required R packages using the code chunk below.
 
 ```{r}
-packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes')
+packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes', 'ggrepel')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -71,6 +71,7 @@ The orientation of the *age_group* label on the x-axis can be challenging to rea
 - Makeover
 
 We will group the data using the code chunk below
+
 ```{r}
 participants$age_group <- cut(participants$age,
                                   breaks = c(-Inf,21, 26, 31, 36, 41, 46, 51, 56, Inf),
@@ -94,3 +95,64 @@ ggplot(data = participants,
 
 ```
 
+```{r}
+ggplot(data = participants,
+       aes(x=age_group, y=joviality, color=haveKids, group = haveKids)) +
+  stat_summary(fun.y=mean, geom = "point") +
+  stat_summary(fun.y=mean, geom = "line") +
+  stat_summary(aes(label = round(..y.., 2)), fun.y=mean, geom = "label_repel", segment.size = 0) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  xlab("Age Group") +
+  ylab("Joviality") +
+  ggtitle("Joviality across Age Groups by Kids Status")
+
+```
+
+```{r fig.height = 6, fig.width = 10}
+ggplot(data = participants,
+       aes(x=age_group, y=joviality, color=educationLevel, group = educationLevel)) +
+  stat_summary(fun.y=mean, geom = "point") +
+  stat_summary(fun.y=mean, geom = "line") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  xlab("Age Group") +
+  ylab("Joviality") +
+  ggtitle("Joviality across Age Groups by Education Level")
+
+```
+
+```{r echo = FALSE}
+p1 <- ggplot(data = participants,
+       aes(x=age_group)) +
+  geom_bar() +
+  coord_flip() +
+  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, colour="blue", fontface="bold", 
+            position=position_stack(vjust = 1.04)) +
+  xlab("Age Group") +
+  ylab("No. of Participants") +
+  ggtitle("Age Distribution")
+
+p2 <- ggplot(data = participants,
+       aes(x=age_group, y=joviality, color=haveKids, group = haveKids)) +
+  stat_summary(fun.y=mean, geom = "point") +
+  stat_summary(fun.y=mean, geom = "line") +
+  stat_summary(aes(label = round(..y.., 2)), fun.y=mean, geom = "label_repel", segment.size = 0) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  xlab("Age Group") +
+  ylab("Joviality") +
+  ggtitle("Joviality across Age Groups by Kids Status")
+
+p3 <- ggplot(data = participants,
+       aes(x=age_group, y=joviality, color=educationLevel, group = educationLevel)) +
+  stat_summary(fun.y=mean, geom = "point") +
+  stat_summary(fun.y=mean, geom = "line") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  xlab("Age Group") +
+  ylab("Joviality") +
+  ggtitle("Joviality across Age Groups by Education Level")
+```
+
+```{r fig.height = 16, fig.width = 16}
+patchwork <- ((p1 | p2)/ p3) + 
+              plot_annotation(tag_levels = 'I', title = 'Demographic of the city of Engagement, Ohio USA')
+patchwork & theme_economist()
+```
