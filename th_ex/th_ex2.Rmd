@@ -70,7 +70,7 @@ The orientation of the *age_group* label on the x-axis can be challenging to rea
 
 - Makeover
 
-We will group the data using the code chunk below
+We will group the data using the code chunk below.
 
 ```{r}
 participants$age_group <- cut(participants$age,
@@ -80,7 +80,7 @@ participants$age_group <- cut(participants$age,
                                   right = FALSE)
 ```
 
-The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, withe use of `coord_flip()` to correct the orientation of the label.
+The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `coord_flip()` to correct the orientation of the label.
 
 ```{r}
 ggplot(data = participants,
@@ -95,6 +95,19 @@ ggplot(data = participants,
 
 ```
 
+# Critic 3
+- Original Design
+
+![](img/image5.jpg)
+
+- Critic
+
+Beside the issue with the orientation of the x-axis label as mentioned earlier, the legend of the graph is also missing. In addition, the choice of the dot size seems to have caused a slight overlap to one of the point labels (0.61).
+
+- Makeover
+
+The code chunk below plots a line chart with the use of `stat_summary()` of **ggplot2**. Legend has been added and point labels have been revised to make them more appealing.
+
 ```{r}
 ggplot(data = participants,
        aes(x=age_group, y=joviality, color=haveKids, group = haveKids)) +
@@ -108,6 +121,20 @@ ggplot(data = participants,
 
 ```
 
+# Critic 4
+- Original Design
+
+![](img/image6.jpg)
+
+- Critic
+
+Beside the issue with the orientation of the x-axis label as mentioned earlier, the legend of the graph is also not properly placed. In addition, the choice of the line/dot size seems to have resulted to much overlaps.
+
+- Makeover
+
+The code chunk below plots a line chart with the use of `stat_summary()` of **ggplot2**. Legend has been properly placed to the right-hand side of the graph and line/dot size has been shrunk to avoid unnecessary overlaps. This is in accordance to the principle of **showing the data clearly**.
+
+
 ```{r fig.height = 6, fig.width = 10}
 ggplot(data = participants,
        aes(x=age_group, y=joviality, color=educationLevel, group = educationLevel)) +
@@ -119,6 +146,49 @@ ggplot(data = participants,
   ggtitle("Joviality across Age Groups by Education Level")
 
 ```
+
+# Critic 5
+- Original Design
+
+![](img/image7.jpg)
+
+- Critic
+
+The graph title is missing and the bars are not sorted by their respective frequencies.
+
+- Makeover
+
+The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `ggtitle()` to add a graph title and bars are now sorted according to their respective frequencies.
+
+```{r}
+ggplot(data = participants,
+       aes(x=reorder(interestGroup, interestGroup, function(x)-length(x)))) +
+  geom_bar(fill="skyblue") +
+  ylim(0, 120) +
+  geom_text(stat="count", 
+      aes(label=paste0(..count.., " (", 
+      round(..count../sum(..count..)*100,
+            1), "%)")),
+      vjust=-1, size=2.7) +
+  xlab("Education Level") +
+  ylab("No. of\nParticipants") +
+  ggtitle("Education Level of Participants")
+```
+
+# Critic 6
+- Original Design
+
+![](img/image8.jpg)
+
+- Critic
+
+The composite graph title is missing and the 3 charts have been combined in a manner that many parts have overlaps, making it hard for us to capture the information clearly from this dashboard.
+
+- Makeover
+
+The code chunk below creates a composite plot by using the **patchwork** package, with the use of `plot_annotation()` to add an overall graph title as well as subplots tagging.
+
+Note: p1 - p3 are assigned to plots presented earlier.
 
 ```{r echo = FALSE}
 p1 <- ggplot(data = participants,
