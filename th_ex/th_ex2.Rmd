@@ -66,7 +66,7 @@ Should be corrected as below:
 
 - Critic
 
-The orientation of the *age_group* label on the x-axis can be challenging to read. Moreover, the orientation of the y-axis label is also vertically but not horizontally. This coincides with one of the **data-ink** principles on graph labeling where the orientation of label should be reader friendly.
+The orientation of the *age_group* label on the x-axis can be challenging to read. Moreover, the orientation of the y-axis label is also vertically but not horizontally displayed. This coincides with one of the **data-ink** principles on graph labeling where the orientation of label should be reader friendly.
 
 - Makeover
 
@@ -80,7 +80,7 @@ participants$age_group <- cut(participants$age,
                                   right = FALSE)
 ```
 
-The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `coord_flip()` to correct the orientation of the *age_group* label and one of the `theme()` components to rotate the y-axis label to horizontally.
+The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `coord_flip()` to correct the orientation of the *age_group* label and one of the `theme()` components to rotate the y-axis label to horizontal position.
 
 ```{r}
 ggplot(data = participants,
@@ -108,7 +108,7 @@ Beside the issue with the orientation of the labels as mentioned earlier, the le
 
 - Makeover
 
-The code chunk below plots a trellis boxplot with the use of `geom_boxplot()` and `facet_grid` of **ggplot2**. Point labels have been revised using `stat_summary` to make them more appealing. The use of boxplot allows the comparison of mean and median statistics across each age group for those with or without kids.
+The code chunk below plots a trellis boxplot with the use of `geom_boxplot()` and `facet_grid()` of **ggplot2**. Point labels have been revised using `stat_summary()` to make them more appealing. The use of boxplot allows the comparison of mean and median statistics across each age group for those with or without kids.
 
 ```{r fig.height = 6, fig.width = 10}
 ggplot(data=participants, 
@@ -134,7 +134,7 @@ ggplot(data=participants,
 
 - Critic
 
-Beside the issue with the orientation of the x-axis label as mentioned earlier, the legend of the graph is also not properly placed. In addition, the choice of the line/dot size seems to have resulted to much overlaps.
+Beside the issue with the orientation of the labels as mentioned earlier, the legend of the graph is also not properly placed. In addition, the choice of the line/dot size seems to have resulted to much overlaps.
 
 - Makeover
 
