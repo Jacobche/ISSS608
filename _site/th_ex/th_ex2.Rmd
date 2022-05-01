@@ -66,7 +66,7 @@ Should be corrected as below:
 
 - Critic
 
-The orientation of the *age_group* label on the x-axis can be challenging to read. This coincides with one of the **data-ink** principles on graph labeling where the orientation of label should be reader friendly.
+The orientation of the *age_group* label on the x-axis can be challenging to read. Moreover, the orientation of the y-axis label is also vertically but not horizontally. This coincides with one of the **data-ink** principles on graph labeling where the orientation of label should be reader friendly.
 
 - Makeover
 
@@ -80,18 +80,20 @@ participants$age_group <- cut(participants$age,
                                   right = FALSE)
 ```
 
-The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `coord_flip()` to correct the orientation of the label.
+The code chunk below plots a bar chart by using `geom_bar()` of **ggplot2**, with the use of `coord_flip()` to correct the orientation of the *age_group* label and one of the `theme()` components to rotate the y-axis label to horizontally.
 
 ```{r}
 ggplot(data = participants,
        aes(x=age_group)) +
   geom_bar() +
   coord_flip() +
-  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, colour="blue", fontface="bold", 
+  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, fontface="bold", 
             position=position_stack(vjust = 1.04)) +
   xlab("Age Group") +
   ylab("No. of Participants") +
-  ggtitle("Age Distribution")
+  ggtitle("Age Distribution") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.y= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 
 ```
 
@@ -102,24 +104,28 @@ ggplot(data = participants,
 
 - Critic
 
-Beside the issue with the orientation of the x-axis label as mentioned earlier, the legend of the graph is also missing. In addition, the choice of the dot size seems to have caused a slight overlap to one of the point labels (0.61).
+Beside the issue with the orientation of the labels as mentioned earlier, the legend of the graph is also missing. In addition, the choice of using line graph to display the mean statistics may not very informative.
 
 - Makeover
 
-The code chunk below plots a line chart with the use of `stat_summary()` of **ggplot2**. Legend has been added and point labels have been revised to make them more appealing.
+The code chunk below plots a trellis boxplot with the use of `geom_boxplot()` and `facet_grid` of **ggplot2**. Point labels have been revised using `stat_summary` to make them more appealing. The use of boxplot allows the comparison of mean and median statistics across each age group for those with or without kids.
 
-```{r}
-ggplot(data = participants,
-       aes(x=age_group, y=joviality, color=haveKids, group = haveKids)) +
-  stat_summary(fun.y=mean, geom = "point") +
-  stat_summary(fun.y=mean, geom = "line") +
-  stat_summary(aes(label = round(..y.., 2)), fun.y=mean, geom = "label_repel", segment.size = 0) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
-  xlab("Age Group") +
-  ylab("Joviality") +
-  ggtitle("Joviality across Age Groups by Kids Status")
-
+```{r fig.height = 6, fig.width = 10}
+ggplot(data=participants, 
+       aes(y = joviality, x= age_group)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",
+               fun="mean",
+               colour ="red",
+               size=2) +
+  stat_summary(aes(label = round(..y.., 2)), fun=mean, geom = "label_repel", size=3, angle=150) +
+  facet_grid(haveKids ~.) +
+  labs(y= 'Joviality', x= 'Age Group',
+       title = "Distribution of Joviality across Age Groups by Kids Status") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.line= element_line(color= 'grey'))
 ```
+
 
 # Critic 4
 - Original Design
@@ -143,7 +149,9 @@ ggplot(data = participants,
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
   xlab("Age Group") +
   ylab("Joviality") +
-  ggtitle("Joviality across Age Groups by Education Level")
+  ggtitle("Joviality across Age Groups by Education Level") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 
 ```
 
@@ -172,7 +180,9 @@ ggplot(data = participants,
       vjust=-1, size=2.7) +
   xlab("Education Level") +
   ylab("No. of\nParticipants") +
-  ggtitle("Education Level of Participants")
+  ggtitle("Education Level of Participants") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 ```
 
 # Critic 6
@@ -195,21 +205,27 @@ p1 <- ggplot(data = participants,
        aes(x=age_group)) +
   geom_bar() +
   coord_flip() +
-  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, colour="blue", fontface="bold", 
+  geom_text(stat="count", aes(label=paste0(..count..)), check_overlap=TRUE, fontface="bold", 
             position=position_stack(vjust = 1.04)) +
   xlab("Age Group") +
   ylab("No. of Participants") +
-  ggtitle("Age Distribution")
+  ggtitle("Age Distribution") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.y= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 
-p2 <- ggplot(data = participants,
-       aes(x=age_group, y=joviality, color=haveKids, group = haveKids)) +
-  stat_summary(fun.y=mean, geom = "point") +
-  stat_summary(fun.y=mean, geom = "line") +
-  stat_summary(aes(label = round(..y.., 2)), fun.y=mean, geom = "label_repel", segment.size = 0) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
-  xlab("Age Group") +
-  ylab("Joviality") +
-  ggtitle("Joviality across Age Groups by Kids Status")
+p2 <- ggplot(data=participants, 
+       aes(y = joviality, x= age_group)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",
+               fun="mean",
+               colour ="red",
+               size=2) +
+  stat_summary(aes(label = round(..y.., 2)), fun=mean, geom = "label_repel", size=3, angle=150) +
+  facet_grid(haveKids ~.) +
+  labs(y= 'Joviality', x= 'Age Group',
+       title = "Distribution of Joviality across Age Groups by Kids Status") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.line= element_line(color= 'grey'))
 
 p3 <- ggplot(data = participants,
        aes(x=age_group, y=joviality, color=educationLevel, group = educationLevel)) +
@@ -218,7 +234,9 @@ p3 <- ggplot(data = participants,
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
   xlab("Age Group") +
   ylab("Joviality") +
-  ggtitle("Joviality across Age Groups by Education Level")
+  ggtitle("Joviality across Age Groups by Education Level") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 ```
 
 ```{r fig.height = 16, fig.width = 16}
