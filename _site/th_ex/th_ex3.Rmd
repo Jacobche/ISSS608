@@ -16,9 +16,18 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
 ```
 
+
+# Task
+
+**Challenge 3: Economic** considers the financial health of the city. Over time, are businesses growing or shrinking? How are people changing jobs? Are standards of living improving or declining over time?
+
+Consider the financial status of Engagement’s businesses and residents, and use visual analytic techniques to address these questions.
+
+- Describe the health of the various employers within the city limits. What employment patterns do you observe? Do you notice any areas of particularly high or low turnover? Limit your response to 10 images and 500 words.
+
 # Overview
 
-In this take-home exercise, appropriate static and interactive statistical graphics methods are used to reveal the economic of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/). 
+In this take-home exercise, appropriate static and interactive statistical graphics methods are used to reveal the economic of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/) while addressing the questions stated in the Task section.
 
 The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
 
@@ -29,7 +38,7 @@ The picture below shows a sketch of the initial design proposed.
 ![](img/image1.jpg)
 
 
-# Installing & Lauching R Packages
+# Installing & Launching R Packages
 
 Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
 
