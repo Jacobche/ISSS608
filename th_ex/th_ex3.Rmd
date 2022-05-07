@@ -60,9 +60,16 @@ for(p in packages){
 The code chunk below imports *Participants.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as an tibble data frame called *participants*.
 
 ```{r}
-participants <- read_csv("data/Participants.csv")
+check_in <- read_csv("data/CheckinJournal.csv")
 
 glimpse(participants)
 ```
 
+```{r}
+ggplot(data=check_in, 
+       aes(x = timestamp, 
+           fill = venueType)) +
+    geom_histogram(bins=27,
+                   color="black")
+```
 
