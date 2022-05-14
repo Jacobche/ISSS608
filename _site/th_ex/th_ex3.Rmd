@@ -171,6 +171,9 @@ ggplot() +
 qplot(day, count, data = travel_to_work_count) +
   facet_wrap(~ year_month) +
   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+
+# To do trelliscopejs here! redo!
 ```
 
 
@@ -285,6 +288,8 @@ ggplotly(p3)
 
 ```{r}
 d <- highlight_key(travel_to_work_by_day)
+
+# To improve by having p3 here
 
 gg <- highlight(ggplotly(p3),
                 "plotly_selected")
