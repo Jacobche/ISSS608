@@ -13,7 +13,8 @@ output: distill::distill_article
 knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE,
                       warning = FALSE,
-                      message = FALSE)
+                      message = FALSE,
+                      fig.retina = 3)
 ```
 
 
@@ -45,7 +46,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes')
+packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes', 'lubridate', 'ggiraph', 'gganimate', 'plotly', 'DT', 'crosstalk')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -53,6 +54,8 @@ for(p in packages){
   }
   library(p, character.only = T)
 }
+
+library(trelliscopejs)
 ```
 
 # Importing Data
@@ -60,16 +63,244 @@ for(p in packages){
 The code chunk below imports *Participants.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as an tibble data frame called *participants*.
 
 ```{r}
-check_in <- read_csv("data/CheckinJournal.csv")
+travel <- read_csv("rawdata/TravelJournal.csv")
+employers <- read_csv("rawdata/Employers.csv")
 
-glimpse(participants)
+summary(travel)
+summary(employers)
+```
+
+
+# Data Wrangling
+
+```{r}
+travel$month <- factor(month(travel$`travelEndTime`), 
+                    levels=1:12, 
+                    labels=month.abb, 
+                    ordered=TRUE)
+travel$year <- year(travel$`travelEndTime`)
+travel$year_month <- format(as.Date(travel$`travelEndTime`), "%Y-%m")
+travel$day <- day(travel$`travelEndTime`)
+travel$date <- date(travel$`travelEndTime`)
+```
+
+
+# Vizualization
+
+First we examine the overall trend of travel for all purpose
+
+```{r}
+ggplot(data=travel, 
+       aes(x = travelStartTime, 
+           fill = purpose)) +
+    geom_histogram(bins=15,
+                   color="black") +
+    scale_y_continuous(NULL,
+                     breaks = NULL)
+```
+Next we use trellis plot to examine changes over time. However since the facet function of ggplot2 is not useful for visualizing large data (i.e. 1000 participants), we will use [**trelliscopejs**](https://hafen.github.io/trelliscopejs/index.html) instead.
+
+```{r}
+travel_count <- travel %>%
+  select(year_month, purpose, participantId) %>%
+  group_by(year_month, purpose) %>%
+  summarise(count = n()) %>%
+  ungroup()
+```
+
+
+
+
+```{r}
+qplot(year_month, count, data = travel_count) +
+  facet_wrap(~ purpose) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+```
+
+Zooming into Work pattern
+
+
+
+```{r}
+travel_to_work <- travel %>%
+  filter(purpose == 'Work/Home Commute') %>%
+  inner_join(y=employers, by = c("travelEndLocationId" = "employerId")) %>%
+  select(participantId, travelEndTime, year, year_month, month, day, date, travelEndLocationId, purpose, location, buildingId) %>%
+  rename('employerId' = 'travelEndLocationId')
+```
+
+
+Rename a value for simplicity
+
+```{r}
+travel_to_work$purpose <- sub('Work/Home Commute', 
+                              'Work',
+                              travel_to_work$purpose)
+```
+
+
+
+doing a count:
+
+```{r}
+travel_to_work_count <- travel_to_work %>%
+  group_by(year_month, day) %>%
+  summarise(count = n()) %>%
+  ungroup()
+```
+
+
+by month analysis
+
+
+```{r fig.width=12, fig.height=6}
+ggplot() + 
+  geom_line(data=travel_to_work_count,
+            aes(x=day, 
+                y=count, 
+                group=year_month), 
+            colour="black") +
+  facet_grid(~year_month) +
+  labs(axis.text.x = element_blank()) +
+  xlab("") +
+  ylab("No. of Visitors")
+```
+
+
+```{r}
+qplot(day, count, data = travel_to_work_count) +
+  facet_wrap(~ year_month) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+
+# To do trelliscopejs here! redo!
+```
+
+
+
+
+Interactive Bar graph by month
+
+```{r}
+travel_to_work_by_month <- travel_to_work %>%
+  group_by(year_month, purpose) %>%
+  summarise(count = n()) %>%
+  ungroup()
+```
+
+
+```{r}
+travel_to_work_by_month$tooltip <- c(paste0(
+  "Purpose = ", travel_to_work_by_month$purpose,
+  "\n Count = ", travel_to_work_by_month$count))
+
+p <- ggplot(data=travel_to_work_by_month, 
+       aes(x = year_month, y = count)) +
+  geom_bar_interactive(aes(tooltip = travel_to_work_by_month$tooltip,
+                           data_id = year_month),
+                       stat="identity")
+
+girafe(
+  ggobj = p,
+  width_svg = 12,
+  height_svg = 12*0.618
+)
+
+          
+```
+
+
+
+
+
+
+```{r}
+travel_to_work_daily_count <- travel_to_work %>%
+  group_by(employerId, year_month, day, date) %>%
+  summarise(count = n()) %>%
+  ungroup()
+```
+
+
+
+
+
+```{r}
+travel_to_work_monthly_change <- travel_to_work_daily_count %>%
+  group_by(employerId, year_month) %>%
+  summarise(monthly_employees = max(count)) %>%
+  mutate(mom_change = coalesce(monthly_employees - lead(monthly_employees),0),
+         mom_turnover_rate = coalesce((monthly_employees - lead(monthly_employees))/monthly_employees,0)) %>%
+  ungroup()
+```
+
+
+
+```{r}
+travel_to_work_mom <- travel_to_work_monthly_change %>%
+  group_by(year_month) %>%
+  summarise(avg_turnover = mean(mom_turnover_rate)) %>%
+  ungroup()
+```
+
+
+```{r}
+travel_to_work_mom$tooltip <- c(paste0(
+  "MOM Turnover % =", round(travel_to_work_mom$avg_turnover*100,1), '%'))
+
+p2 <- ggplot(data=travel_to_work_mom, 
+       aes(x = year_month, y = avg_turnover)) +
+  geom_bar_interactive(aes(tooltip = travel_to_work_mom$tooltip,
+                           data_id = year_month),
+                       stat="identity")
+
+girafe(code = print(p / p2),
+       width_svg = 12,
+       height_svg = 12,
+       options = list(
+         opts_hover(css = "fill: #202020;"),
+         opts_hover_inv(css = "opacity:0.2;")
+         )
+       )
+```
+
+
+Let's only look at first 2 months: 2022-03 & 2022-04, turnover by day
+
+```{r}
+travel_to_work_by_day <- travel_to_work_daily_count %>%
+  filter(year_month %in% c('2022-03', '2022-04')) %>%
+  group_by(date) %>%
+  summarise(daily_employees = sum(count)) %>%
+  ungroup()
+```
+
+
+
+
+
+```{r}
+p3 <- ggplot(travel_to_work_by_day, aes(date, daily_employees)) +
+  geom_line()
+
+ggplotly(p3)
 ```
 
 ```{r}
-ggplot(data=check_in, 
-       aes(x = timestamp, 
-           fill = venueType)) +
-    geom_histogram(bins=27,
-                   color="black")
+d <- highlight_key(travel_to_work_by_day)
+
+# To improve by having p3 here
+
+gg <- highlight(ggplotly(p3),
+                "plotly_selected")
+crosstalk::bscols(gg,
+                  DT::datatable(d))
 ```
+
+
+
+
+
+
+
 

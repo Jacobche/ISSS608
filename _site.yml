@@ -30,6 +30,8 @@ navbar:
       menu:
       - text: "In-class Exercise 4"
         href: "in_class_ex/in_class_ex04.html"
+      - text: "In-class Exercise 5"
+        href: "in_class_ex/in_class_ex05.html"
 output: distill::distill_article
 
 # Note: to update rmarkdown::render_site() at R console
