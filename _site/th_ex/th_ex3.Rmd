@@ -168,12 +168,17 @@ ggplot() +
 
 
 ```{r}
-qplot(day, count, data = travel_to_work_count) +
-  facet_wrap(~ year_month) +
-  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+# qplot(day, count, data = travel_to_work_count) +
+#   facet_wrap(~ year_month) +
+#   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
 
 
 # To do trelliscopejs here! redo!
+
+# qplot(day, count, data = travel_to_work_count) +
+#   facet_trelliscope(~ year_month, nrow = 2, ncol = 4, width = 600) +
+#   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
 ```
 
 
