@@ -82,6 +82,7 @@ travel$year <- year(travel$`travelEndTime`)
 travel$year_month <- format(as.Date(travel$`travelEndTime`), "%Y-%m")
 travel$day <- day(travel$`travelEndTime`)
 travel$date <- date(travel$`travelEndTime`)
+travel$wkday <- weekdays(travel$`travelEndTime`)
 ```
 
 
@@ -125,7 +126,7 @@ Zooming into Work pattern
 travel_to_work <- travel %>%
   filter(purpose == 'Work/Home Commute') %>%
   inner_join(y=employers, by = c("travelEndLocationId" = "employerId")) %>%
-  select(participantId, travelEndTime, year, year_month, month, day, date, travelEndLocationId, purpose, location, buildingId) %>%
+  select(participantId, travelEndTime, year, year_month, month, day, date, wkday, travelEndLocationId, purpose, location, buildingId) %>%
   rename('employerId' = 'travelEndLocationId')
 ```
 
@@ -168,19 +169,21 @@ ggplot() +
 
 
 ```{r}
-# qplot(day, count, data = travel_to_work_count) +
-#   facet_wrap(~ year_month) +
-#   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
-
-
-# To do trelliscopejs here! redo!
-
-# qplot(day, count, data = travel_to_work_count) +
-#   facet_trelliscope(~ year_month, nrow = 2, ncol = 4, width = 600) +
-#   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+qplot(day, count, data = travel_to_work_count) +
+  facet_wrap(~ year_month) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
 
 ```
 
+
+
+```{r}
+qplot(day, count, data = travel_to_work_count) +
+  facet_trelliscope(~ year_month, nrow = 2, ncol = 4, width = 600,
+                    path = "trellis/",
+                    self_contained=TRUE) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+```
 
 
 
@@ -221,7 +224,7 @@ girafe(
 
 ```{r}
 travel_to_work_daily_count <- travel_to_work %>%
-  group_by(employerId, year_month, day, date) %>%
+  group_by(employerId, year_month, day, date, wkday) %>%
   summarise(count = n()) %>%
   ungroup()
 ```
@@ -270,33 +273,53 @@ girafe(code = print(p / p2),
 ```
 
 
-Let's only look at first 2 months: 2022-03 & 2022-04, turnover by day
+<!-- Let's only look at first 2 months: 2022-03 & 2022-04, turnover by day -->
+
+Now look into by wkday
 
 ```{r}
+
+wkday_levels <- c('Saturday', 'Friday', 
+                  'Thursday', 'Wednesday', 
+                  'Tuesday', 'Monday', 
+                  'Sunday')
+
 travel_to_work_by_day <- travel_to_work_daily_count %>%
-  filter(year_month %in% c('2022-03', '2022-04')) %>%
-  group_by(date) %>%
+  group_by(date, day, wkday, year_month) %>%
   summarise(daily_employees = sum(count)) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(wkday = factor(
+    wkday, levels = wkday_levels))
 ```
 
 
 
 
-
 ```{r}
-p3 <- ggplot(travel_to_work_by_day, aes(date, daily_employees)) +
-  geom_line()
+
+p3 <- ggplot(travel_to_work_by_day, 
+       aes(year_month, 
+           wkday, 
+           fill = daily_employees)) + 
+geom_tile(color = "white", 
+          size = 0.1) + 
+theme_tufte(base_family = "Helvetica") + 
+coord_equal() +
+scale_fill_gradient(name = "# of attacks",
+                    low = "sky blue", 
+                    high = "dark blue")
 
 ggplotly(p3)
+
 ```
 
 ```{r}
 d <- highlight_key(travel_to_work_by_day)
 
-# To improve by having p3 here
+p4 <- ggplot(d, aes(date, daily_employees)) +
+  geom_line()
 
-gg <- highlight(ggplotly(p3),
+gg <- highlight(ggplotly(p4),
                 "plotly_selected")
 crosstalk::bscols(gg,
                   DT::datatable(d))
