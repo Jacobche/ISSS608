@@ -36,7 +36,7 @@ The data are processed by using appropriate **tidyverse** family of packages and
 
 The picture below shows a sketch of the initial design proposed. 
 
-![](img/image1.jpg)
+![](img/image9.jpg)
 
 
 # Installing & Launching R Packages
@@ -60,7 +60,7 @@ library(trelliscopejs)
 
 # Importing Data
 
-The code chunk below imports *Participants.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as an tibble data frame called *participants*.
+The code chunk below imports *TravelJournal.csv* and *Employers.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save them as tibble data frames called *travel* and *employers*.
 
 ```{r}
 travel <- read_csv("rawdata/TravelJournal.csv")
@@ -73,22 +73,30 @@ summary(employers)
 
 # Data Wrangling
 
+Some of the new time-related fields have been added to *travel* with the following code chunk:
+
 ```{r}
-travel$month <- factor(month(travel$`travelEndTime`), 
-                    levels=1:12, 
-                    labels=month.abb, 
-                    ordered=TRUE)
-travel$year <- year(travel$`travelEndTime`)
 travel$year_month <- format(as.Date(travel$`travelEndTime`), "%Y-%m")
 travel$day <- day(travel$`travelEndTime`)
-travel$date <- date(travel$`travelEndTime`)
 travel$wkday <- weekdays(travel$`travelEndTime`)
 ```
 
+Data frames *travel* and *employers* are saved in RDS format to avoid uploading large files to Git.
 
-# Vizualization
+```{r}
+saveRDS(travel, 'data/travel.rds')
+saveRDS(employers, 'data/employers.rds')
+```
 
-First we examine the overall trend of travel for all purpose
+```{r}
+travel <- readRDS('data/travel.rds')
+employers <- readRDS('data/employers.rds')
+```
+
+
+# Static Histogram for Overview
+
+We will first examine the overall trend of participants' travels for various purpose in *travel*.
 
 ```{r}
 ggplot(data=travel, 
@@ -97,11 +105,18 @@ ggplot(data=travel,
     geom_histogram(bins=15,
                    color="black") +
     scale_y_continuous(NULL,
-                     breaks = NULL)
+                     breaks = NULL) +
+    labs(y= 'Travel Count', x= 'Time',
+       title = "Travel Trend by Purpose Over Time") +
+    theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.line= element_line(color= 'grey'))
 ```
-Next we use trellis plot to examine changes over time. However since the facet function of ggplot2 is not useful for visualizing large data (i.e. 1000 participants), we will use [**trelliscopejs**](https://hafen.github.io/trelliscopejs/index.html) instead.
 
-```{r}
+# Static Trellis Plot
+
+We have transformed the data accordingly and displayed a trellis plot partitioned by purpose in order to look at travel trend for respective purpose.
+
+```{r echo = FALSE}
 travel_count <- travel %>%
   select(year_month, purpose, participantId) %>%
   group_by(year_month, purpose) %>%
@@ -109,29 +124,29 @@ travel_count <- travel %>%
   ungroup()
 ```
 
-
-
-
 ```{r}
 qplot(year_month, count, data = travel_count) +
   facet_wrap(~ purpose) +
-  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+  labs(y= 'Travel Count', x= 'Time',
+     title = "Travel Trend for Respective Purpose Over Time") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(), axis.text.x=element_blank(),
+      axis.line= element_line(color= 'grey'))
 ```
 
-Zooming into Work pattern
+# Further Data Wrangling - Work
 
-
+We will zoom into work travel patterns and both *travel* and *employers* are joined using `inner_join()` function of **dplyr**.
 
 ```{r}
 travel_to_work <- travel %>%
   filter(purpose == 'Work/Home Commute') %>%
   inner_join(y=employers, by = c("travelEndLocationId" = "employerId")) %>%
-  select(participantId, travelEndTime, year, year_month, month, day, date, wkday, travelEndLocationId, purpose, location, buildingId) %>%
+  select(participantId, travelEndTime, year_month, day, wkday, travelEndLocationId, purpose, location, buildingId) %>%
   rename('employerId' = 'travelEndLocationId')
 ```
 
 
-Rename a value for simplicity
+Renaming has been performed simplicity using the code chunk below:
 
 ```{r}
 travel_to_work$purpose <- sub('Work/Home Commute', 
@@ -141,20 +156,18 @@ travel_to_work$purpose <- sub('Work/Home Commute',
 
 
 
-doing a count:
+# Static Trellis Plot - Line
 
-```{r}
+We will now look at daily trend of work travel patterns for each month.
+
+```{r echo=FALSE}
 travel_to_work_count <- travel_to_work %>%
   group_by(year_month, day) %>%
   summarise(count = n()) %>%
   ungroup()
 ```
 
-
-by month analysis
-
-
-```{r fig.width=12, fig.height=6}
+```{r fig.width=12, fig.height=4}
 ggplot() + 
   geom_line(data=travel_to_work_count,
             aes(x=day, 
@@ -162,40 +175,51 @@ ggplot() +
                 group=year_month), 
             colour="black") +
   facet_grid(~year_month) +
-  labs(axis.text.x = element_blank()) +
-  xlab("") +
-  ylab("No. of Visitors")
+  labs(y= 'Travel \nCount', x= 'Month/Day',
+     title = "Daily Travel Trend across Month") +
+  theme(axis.title.y= element_text(angle=0),
+      axis.line= element_line(color= 'grey'))
 ```
 
+
+# Static Trellis Plot - Dot
+
+Due to the cluttered-ness of the previous plot, we will aim to improve the display using a trellis dot plot.
 
 ```{r}
 qplot(day, count, data = travel_to_work_count) +
-  facet_wrap(~ year_month) +
-  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+  facet_wrap(~ year_month) + 
+  labs(y= 'Travel \nCount', x= 'Month/Day',
+     title = "Daily Travel Trend across Month") +
+  theme(axis.title.y= element_text(angle=0), axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+      axis.line= element_line(color= 'grey'))
 
 ```
 
+# Static Trellis Plot - Dot 2
 
+Since the facet function of **ggplot2** is not useful for visualizing large data, we will use [**trelliscopejs**](https://hafen.github.io/trelliscopejs/index.html) instead.
 
 ```{r}
 qplot(day, count, data = travel_to_work_count) +
   facet_trelliscope(~ year_month, nrow = 2, ncol = 4, width = 600,
                     path = "trellis/",
                     self_contained=TRUE) +
-  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+  labs(y= 'Travel \nCount', x= 'Day') +
+  theme(axis.title.y= element_text(angle=0), axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+      axis.line= element_line(color= 'grey'))
 ```
 
+# Interactive Bar Graph
 
+We will again transform the data accordingly to look at monthly work travel trend using `geom_bar_interactive()` of **ggiraph**.
 
-Interactive Bar graph by month
-
-```{r}
+```{r echo=FALSE}
 travel_to_work_by_month <- travel_to_work %>%
   group_by(year_month, purpose) %>%
   summarise(count = n()) %>%
   ungroup()
 ```
-
 
 ```{r}
 travel_to_work_by_month$tooltip <- c(paste0(
@@ -204,6 +228,10 @@ travel_to_work_by_month$tooltip <- c(paste0(
 
 p <- ggplot(data=travel_to_work_by_month, 
        aes(x = year_month, y = count)) +
+  labs(y= 'Travel Count', x= 'Month',
+       title = "Monthly Travel Trend Over Time") +
+    theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.line= element_line(color= 'grey')) +
   geom_bar_interactive(aes(tooltip = travel_to_work_by_month$tooltip,
                            data_id = year_month),
                        stat="identity")
@@ -217,21 +245,16 @@ girafe(
           
 ```
 
+# Interactive Bar Graph - Coordinated Mutiple Views
 
-
-
-
-
-```{r}
+```{r echo=FALSE}
 travel_to_work_daily_count <- travel_to_work %>%
-  group_by(employerId, year_month, day, date, wkday) %>%
+  group_by(employerId, year_month, day, wkday) %>%
   summarise(count = n()) %>%
   ungroup()
 ```
 
-
-
-
+We will transform the data to compute for month-over-month turnover rate and join with the previous plot to form coordinated mutiple views.
 
 ```{r}
 travel_to_work_monthly_change <- travel_to_work_daily_count %>%
@@ -242,9 +265,7 @@ travel_to_work_monthly_change <- travel_to_work_daily_count %>%
   ungroup()
 ```
 
-
-
-```{r}
+```{r echo=FALSE}
 travel_to_work_mom <- travel_to_work_monthly_change %>%
   group_by(year_month) %>%
   summarise(avg_turnover = mean(mom_turnover_rate)) %>%
@@ -258,6 +279,13 @@ travel_to_work_mom$tooltip <- c(paste0(
 
 p2 <- ggplot(data=travel_to_work_mom, 
        aes(x = year_month, y = avg_turnover)) +
+  labs(y= 'Turnover %', x= 'Month',
+       title = "Monthly Turnover Trend Over Time") +
+    theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.line= element_line(color= 'grey')) +
+  geom_bar_interactive(aes(tooltip = travel_to_work_by_month$tooltip,
+                           data_id = year_month),
+                       stat="identity") +
   geom_bar_interactive(aes(tooltip = travel_to_work_mom$tooltip,
                            data_id = year_month),
                        stat="identity")
@@ -273,11 +301,11 @@ girafe(code = print(p / p2),
 ```
 
 
-<!-- Let's only look at first 2 months: 2022-03 & 2022-04, turnover by day -->
+# Interactive Calendar Heatmap
 
-Now look into by wkday
+We will now look at the calendar heatmap of travel patterns by wkday across month using `geom_tile()` as well as `ggplotly`.
 
-```{r}
+```{r echo=FALSE}
 
 wkday_levels <- c('Saturday', 'Friday', 
                   'Thursday', 'Wednesday', 
@@ -285,15 +313,12 @@ wkday_levels <- c('Saturday', 'Friday',
                   'Sunday')
 
 travel_to_work_by_day <- travel_to_work_daily_count %>%
-  group_by(date, day, wkday, year_month) %>%
+  group_by(day, wkday, year_month) %>%
   summarise(daily_employees = sum(count)) %>%
   ungroup() %>%
   mutate(wkday = factor(
     wkday, levels = wkday_levels))
 ```
-
-
-
 
 ```{r}
 
@@ -301,21 +326,30 @@ p3 <- ggplot(travel_to_work_by_day,
        aes(year_month, 
            wkday, 
            fill = daily_employees)) + 
-geom_tile(color = "white", 
+  geom_tile(color = "white", 
           size = 0.1) + 
-theme_tufte(base_family = "Helvetica") + 
-coord_equal() +
-scale_fill_gradient(name = "# of attacks",
+  theme_tufte(base_family = "Helvetica") + 
+  coord_equal() +
+  scale_fill_gradient(name = "# of travels",
                     low = "sky blue", 
-                    high = "dark blue")
+                    high = "dark blue") +
+  labs(y= NULL, x= 'Month',
+       title = "Wkday-ly Travel Trend across Month") +
+  theme(axis.ticks = element_blank(),
+      axis.text.x = element_text(size = 7),
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 6) )
 
 ggplotly(p3)
 
 ```
 
 
+# Animated Bubble Plot
 
-```{r}
+
+```{r echo=FALSE}
 travel_to_work_initial <- travel_to_work_monthly_change %>%
   filter(year_month == '2022-03') %>%
   select(employerId, monthly_employees) %>%
@@ -325,9 +359,9 @@ travel_to_work_initial <- travel_to_work_monthly_change %>%
   rename('monthly_employees' = 'monthly_employees.y')
 ```
 
-Rename year_month values to 1-15
+We will rename year_month values to 1-15 periods in order to plot an animated bubble plot.
 
-```{r}
+```{r echo=FALSE}
 travel_to_work_initial$year_month <- sub('2022-03', '1', travel_to_work_initial$year_month)
 travel_to_work_initial$year_month <- sub('2022-04', '2', travel_to_work_initial$year_month)
 travel_to_work_initial$year_month <- sub('2022-05', '3', travel_to_work_initial$year_month) 
@@ -348,24 +382,21 @@ travel_to_work_initial <- travel_to_work_initial %>%
   mutate(year_month = as.integer(year_month))
 ```
 
-animated point plot
-
 
 ```{r}
-p5 <- ggplot(travel_to_work_initial, aes(x = mom_turnover_rate, y = strength_level, 
+p4 <- ggplot(travel_to_work_initial, aes(x = mom_turnover_rate, y = strength_level, 
                       size = monthly_employees, 
                       colour = employerId)) +
   geom_point(alpha = 0.7, 
              show.legend = FALSE) +
-  # scale_colour_manual(values = country_colors) +
   scale_size(range = c(2, 12)) +
-  labs(title = 'Year: {frame_time}', 
-       x = '% Aged', 
-       y = '% Young') +
+  labs(title = 'Period cumulative by year_month: {frame_time}', 
+       x = 'Turnover %', 
+       y = 'Employee %') +
   transition_time(year_month) +
   ease_aes('linear')
 
-  animate(p5, nframes = 100, fps = 3)
+  animate(p4, nframes = 100, fps = 3)
 ```
 
 
