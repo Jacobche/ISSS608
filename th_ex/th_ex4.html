@@ -2534,7 +2534,7 @@ packages and load them onto R environment.</p>
 <p>The chunk code below will do the trick.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="va">packages</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&#39;tidyverse&#39;</span>, <span class="st">&#39;ggdist&#39;</span>, <span class="st">&#39;ggridges&#39;</span>, <span class="st">&#39;patchwork&#39;</span>, <span class="st">&#39;ggthemes&#39;</span>, <span class="st">&#39;lubridate&#39;</span>, <span class="st">&#39;ggiraph&#39;</span>, <span class="st">&#39;gganimate&#39;</span>, <span class="st">&#39;plotly&#39;</span>, <span class="st">&#39;DT&#39;</span>, <span class="st">&#39;crosstalk&#39;</span><span class="op">)</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">packages</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&#39;tidyverse&#39;</span>, <span class="st">&#39;data.table&#39;</span><span class="op">)</span>
 
 <span class="kw">for</span><span class="op">(</span><span class="va">p</span> <span class="kw">in</span> <span class="va">packages</span><span class="op">)</span><span class="op">{</span>
   <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va">p</span>, character.only <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -2546,51 +2546,78 @@ packages and load them onto R environment.</p>
 </div>
 </div>
 <h1 id="importing-data">Importing Data</h1>
-<p>The code chunk below imports <em>TravelJournal.csv</em> from the data
-folder into R by using <a href="https://readr.tidyverse.org/reference/read_delim.html"><code>read_csv()</code></a>
+<p>The code chunk below imports <em>ActivityLogs files</em> from the
+rawdata folder into R by using <a href="https://rdrr.io/r/base/list.files.html"><code>list.files()</code></a>,
+<a href="https://readr.tidyverse.org/reference/read_delim.html"><code>read_csv()</code></a>
 of <a href="https://readr.tidyverse.org/"><strong>readr</strong></a>
-package and save it as a tibble data frame called <em>travel</em>.</p>
+package, and <code>map_df()</code> of <a href="https://www.rdocumentation.org/packages/purrr/versions/0.2.5"><strong>purrr</strong></a>
+package, and and save it as a tibble data frame called
+<em>logs</em>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="va">travel</span> <span class="op">&lt;-</span> <span class="fu">read_csv</span><span class="op">(</span><span class="st">&quot;rawdata/TravelJournal.csv&quot;</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">travel</span><span class="op">)</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="fu"><a href="https://rdrr.io/r/utils/memory.size.html">memory.limit</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">160000</span><span class="op">)</span>
 </code></pre>
 </div>
-<pre><code> participantId    travelStartTime               travelStartLocationId
- Min.   :   0.0   Min.   :2022-03-01 05:00:00   Min.   :   1         
- 1st Qu.: 221.0   1st Qu.:2022-06-10 17:35:00   1st Qu.: 449         
- Median : 464.0   Median :2022-10-03 18:40:00   Median : 913         
- Mean   : 480.5   Mean   :2022-10-05 05:21:39   Mean   :1016         
- 3rd Qu.: 726.0   3rd Qu.:2023-01-28 06:20:00   3rd Qu.:1358         
- Max.   :1010.0   Max.   :2023-05-24 23:35:00   Max.   :1805         
-                                                NA&#39;s   :1043         
- travelEndTime                 travelEndLocationId   purpose         
- Min.   :2022-03-01 05:35:00   Min.   :   0        Length:2099656    
- 1st Qu.:2022-06-10 18:10:00   1st Qu.: 449        Class :character  
- Median :2022-10-03 19:00:00   Median : 910        Mode  :character  
- Mean   :2022-10-05 05:46:07   Mean   :1015                          
- 3rd Qu.:2023-01-28 06:45:00   3rd Qu.:1358                          
- Max.   :2023-05-24 23:55:00   Max.   :1805                          
-                                                                     
-  checkInTime                   checkOutTime                
- Min.   :2022-03-01 05:35:00   Min.   :2022-03-01 06:00:00  
- 1st Qu.:2022-06-10 18:10:00   1st Qu.:2022-06-10 21:40:00  
- Median :2022-10-03 19:00:00   Median :2022-10-03 22:47:30  
- Mean   :2022-10-05 05:46:07   Mean   :2022-10-05 09:53:15  
- 3rd Qu.:2023-01-28 06:45:00   3rd Qu.:2023-01-28 08:30:00  
- Max.   :2023-05-24 23:55:00   Max.   :2023-05-25 00:05:00  
-                                                            
- startingBalance    endingBalance     
- Min.   :  -681.6   Min.   :  -640.7  
- 1st Qu.:  5077.8   1st Qu.:  5086.4  
- Median : 12006.9   Median : 12019.5  
- Mean   : 19573.7   Mean   : 19590.8  
- 3rd Qu.: 25972.4   3rd Qu.: 25992.5  
- Max.   :240494.7   Max.   :240838.8  
-                                      </code></pre>
+<pre><code>[1] 160000</code></pre>
 </div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">logs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">&quot;./rawdata/ActivityLogs/&quot;</span>,
+                   pattern <span class="op">=</span> <span class="st">&quot;*.csv&quot;</span>, 
+                   full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">map_df</span><span class="op">(</span><span class="op">~</span><span class="fu">read_csv</span><span class="op">(</span><span class="va">.</span>, 
+                   col_types <span class="op">=</span> <span class="fu">cols</span><span class="op">(</span>.default <span class="op">=</span> <span class="st">&quot;c&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> 
+</code></pre>
+</div>
+</div>
+<h1 id="data-wrangling">Data Wrangling</h1>
+<p>During our data exploration, we realized some of the participants
+starts off with <em>unstable</em> financial status while some having
+<em>stable</em> financial status. As such, we will choose 1 participant
+each, with partipantId 4 from the <em>unstable</em> financial status
+group and partipantId 7 from the <em>stable</em> financial status group,
+and to look after their differing routines.</p>
+<p>The code chunk below limits our <em>logs</em> data to the only
+selected participants using <code>filter()</code> function.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">logs_two_p</span> <span class="op">&lt;-</span> <span class="va">logs</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">participantId</span> <span class="op">==</span> <span class="st">&#39;4&#39;</span> <span class="op">|</span> <span class="va">participantId</span> <span class="op">==</span> <span class="st">&#39;7&#39;</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<p>Data frame <em>logs_two_p</em> is saved in RDS format to avoid
+uploading large files to Git.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">logs_two_p</span>, <span class="st">&#39;data/logs_two_p.rds&#39;</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">logs_two_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">&#39;data/logs_two_p.rds&#39;</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">logs_two_p</span><span class="op">)</span>
+</code></pre>
+</div>
+<pre><code>  timestamp         currentLocation    participantId     
+ Length:258556      Length:258556      Length:258556     
+ Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character  
+ currentMode        hungerStatus       sleepStatus       
+ Length:258556      Length:258556      Length:258556     
+ Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character  
+ apartmentId        availableBalance      jobId          
+ Length:258556      Length:258556      Length:258556     
+ Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character  
+ financialStatus    dailyFoodBudget    weeklyExtraBudget 
+ Length:258556      Length:258556      Length:258556     
+ Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character  </code></pre>
+</div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

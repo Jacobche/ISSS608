@@ -46,7 +46,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'ggdist', 'ggridges', 'patchwork', 'ggthemes', 'lubridate', 'ggiraph', 'gganimate', 'plotly', 'DT', 'crosstalk')
+packages = c('tidyverse', 'data.table')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -59,14 +59,42 @@ for(p in packages){
 
 # Importing Data
 
-The code chunk below imports *TravelJournal.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save it as a tibble data frame called *travel*.
+The code chunk below imports *ActivityLogs files* from the rawdata folder into R by using [`list.files()`](https://rdrr.io/r/base/list.files.html), [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package, and `map_df()` of [**purrr**](https://www.rdocumentation.org/packages/purrr/versions/0.2.5) package, and and save it as a tibble data frame called *logs*.
 
 ```{r}
-travel <- read_csv("rawdata/TravelJournal.csv")
-
-summary(travel)
+memory.limit(size=160000)
 ```
 
+```{r eval=FALSE}
+logs <- list.files(path = "./rawdata/ActivityLogs/",
+                   pattern = "*.csv", 
+                   full.names = T) %>% 
+  map_df(~read_csv(., 
+                   col_types = cols(.default = "c"))) 
+```
+
+
+# Data Wrangling
+
+During our data exploration, we realized some of the participants starts off with *unstable* financial status while some having *stable* financial status. As such, we will choose 1 participant each, with partipantId 4 from the *unstable* financial status group and partipantId 7 from the *stable* financial status group, and to look after their differing routines.
+
+The code chunk below limits our *logs* data to the only selected participants using `filter()` function.
+
+```{r eval=FALSE}
+logs_two_p <- logs %>%
+  filter(participantId == '4' | participantId == '7')
+```
+
+Data frame *logs_two_p* is saved in RDS format to avoid uploading large files to Git.
+
+```{r eval=FALSE}
+saveRDS(logs_two_p, 'data/logs_two_p.rds')
+```
+
+```{r}
+logs_two_p <- readRDS('data/logs_two_p.rds')
+summary(logs_two_p)
+```
 
 
 
