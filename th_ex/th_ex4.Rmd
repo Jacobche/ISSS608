@@ -46,7 +46,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'data.table')
+packages = c('tidyverse', 'data.table', 'knitr', 'ViSiElse', 'kableExtra', 'lubridate')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -61,7 +61,7 @@ for(p in packages){
 
 The code chunk below imports *ActivityLogs files* from the rawdata folder into R by using [`list.files()`](https://rdrr.io/r/base/list.files.html), [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package, and `map_df()` of [**purrr**](https://www.rdocumentation.org/packages/purrr/versions/0.2.5) package, and and save it as a tibble data frame called *logs*.
 
-```{r}
+```{r eval=FALSE}
 memory.limit(size=160000)
 ```
 
@@ -93,8 +93,27 @@ saveRDS(logs_two_p, 'data/logs_two_p.rds')
 
 ```{r}
 logs_two_p <- readRDS('data/logs_two_p.rds')
-summary(logs_two_p)
+```
+
+We will use `kable()` to review the structure of the data frame and `kable_classic` of **kableExtra** has been applied to ensure the full width of the table can be preserved.
+
+```{r}
+kable(head(logs_two_p), format = "html", table.attr = "style='width:40%;'" ) %>% 
+  kable_classic(full_width = T, position = "center", )
+```
+
+```{r}
+logs_two_p$date <- date(logs_two_p$`timestamp`)
 ```
 
 
+Let's check our logic here
+
+```{r}
+logs_daily_ss <- logs_two_p %>%
+  group_by(date, participantId, currentMode) %>%
+  summarise(count = n()) %>%
+  mutate(ss = count * 60) %>%
+  ungroup()
+```
 
