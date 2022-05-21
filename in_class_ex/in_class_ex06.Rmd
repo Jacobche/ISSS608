@@ -17,16 +17,12 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.retina = 3)
 ```
 
-# Getting Started
+# Geographical Data
 
 ## Setting up R packages
 
 ```{r}
-packages = c('scales', 'viridis', 
-             'lubridate', 'ggthemes', 
-             'gridExtra', 'tidyverse', 
-             'readxl', 'knitr',
-             'data.table', 'ViSiElse')
+packages = c('tidyverse', 'knitr', 'sf', 'tmap', 'lubridate', 'clock', 'sftime', 'rmarkdown')
 for (p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
@@ -38,8 +34,161 @@ for (p in packages){
 ## Importing Data
 
 ```{r}
-attacks <- read_csv("data/eventlog.csv")
+schools <- read_sf("data/Schools.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+pubs <- read_sf("data/Pubs.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+buildings <- read_sf("data/Buildings.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+employers <- read_sf("data/Employers.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+restaurants <- read_sf("data/Restaurants.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+apartments <- read_sf("data/Apartments.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
 ```
+
+## Structure of Simple Point Feature
+
+```{r}
+print(schools)
+```
+
+## Structure of Simple Polygon Feature
+
+```{r}
+print(buildings)
+```
+
+
+## Plotting a Building Footprint Map
+
+```{r}
+tmap_mode("view")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1)
+tmap_mode("plot")
+```
+
+## Plotting a Composite Map
+
+```{r}
+tmap_mode("plot")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1) +
+tm_shape(employers) +
+  tm_dots(col = "red")
+```
+
+# Movement Data
+
+## Importing Data
+
+```{r eval=FALSE}
+logs <- read_sf("data/rawdata/ParticipantStatusLogs1.csv", 
+                options = "GEOM_POSSIBLE_NAMES=currentLocation")
+```
+
+## Structure of Data Frame
+
+```{r eval=FALSE}
+glimpse(logs)
+```
+
+## Data Wrangling
+
+```{r eval=FALSE}
+logs_selected <- logs %>%
+  mutate(Timestamp = date_time_parse(timestamp,
+                                     zone = "",
+                                     format = "%Y-%m-%dT%H:%M:%S")) %>%
+  mutate(day = get_day(Timestamp)) %>%
+  filter(currentMode == "Transport")
+```
+
+```{r eval=FALSE}
+write_rds(logs_selected, "data/logs_selected.rds")
+```
+
+```{r}
+logs_selected <- read_rds("data/logs_selected.rds")
+```
+
+## Computing the Hexagons
+
+```{r}
+hex <- st_make_grid(buildings, 
+                    cellsize=100, 
+                    square=FALSE) %>%
+  st_sf() %>%
+  rowid_to_column('hex_id')
+plot(hex)
+```
+
+## Performing Point in Polygon Overlay
+
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                         hex, 
+                         join=st_within)
+plot(points_in_hex, pch='.')
+```
+
+## Performing Point in Polygon Count
+
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                        hex, 
+                        join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+head(points_in_hex)
+```
+
+## Performing Relational Join
+
+```{r}
+hex_combined <- hex %>%
+  left_join(points_in_hex, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+```
+
+## Plotting the hexagon binning mapp
+
+```{r}
+tm_shape(hex_combined %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          n = 8,
+          style = "quantile") +
+  tm_borders(alpha = 0.1)
+```
+
+## Creating Movement Path from Event Points
+
+```{r}
+logs_path <- logs_selected %>%
+  group_by(participantId, day) %>%
+  summarize(m = mean(Timestamp), 
+            do_union=FALSE) %>%
+  st_cast("LINESTRING")
+```
+
+```{r}
+print(logs_path)
+```
+
+## Plotting the Movement Paths
+
+TBC
+
 
 
 

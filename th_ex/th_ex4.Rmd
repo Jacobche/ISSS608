@@ -130,6 +130,15 @@ kable(head(logs_daily_ss))
 ```
 
 
+```{r}
+logs_daily_ss <- logs_daily_ss %>%
+  mutate(participantId = as.character(participantId))
+```
+
+
+
+
+
 # visielse() graphs
 
 # ```{r}
