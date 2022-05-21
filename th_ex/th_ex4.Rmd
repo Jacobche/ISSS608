@@ -102,18 +102,47 @@ kable(head(logs_two_p), format = "html", table.attr = "style='width:40%;'" ) %>%
   kable_classic(full_width = T, position = "center", )
 ```
 
+We will add a date column in order to track daily activities. We have also created a new column called *status* to incorporate "Sleeping" into *currentMode* which expands the original 5 distinct values to 6.
+
 ```{r}
 logs_two_p$date <- date(logs_two_p$`timestamp`)
+
+logs_two_p$status <- ifelse(logs_two_p$sleepStatus == 'Sleeping', 'Sleeping', logs_two_p$currentMode)
+unique(logs_two_p$status)
 ```
 
 
-Let's check our logic here
+We will now calculate the duration of each activity in seconds and transform data using `pivot_wider()` of **tidyr** to suit the usage for `visielse()` visuals.
 
 ```{r}
 logs_daily_ss <- logs_two_p %>%
-  group_by(date, participantId, currentMode) %>%
+  group_by(date, participantId, status) %>%
   summarise(count = n()) %>%
   mutate(ss = count * 60) %>%
-  ungroup()
+  ungroup() %>%
+  select(date, participantId, status, ss) %>%
+  pivot_wider(names_from=status, values_from=ss,
+              values_fill=0)
 ```
+
+```{r}
+kable(head(logs_daily_ss))
+```
+
+
+# visielse() graphs
+
+# ```{r}
+# visielse(logs_daily_ss, group = logs_daily_ss$participantId, informer = NULL, method = "cut")
+# ```
+
+
+
+
+
+
+
+
+
+
 
