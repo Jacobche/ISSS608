@@ -1,0 +1,47 @@
+---
+title: "In-Class Exercise 6"
+description: |
+  This contains the in-class work for Week 6.
+author:
+  - name: Che Xuan 
+    url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.retina = 3)
+```
+
+# Getting Started
+
+## Setting up R packages
+
+```{r}
+packages = c('scales', 'viridis', 
+             'lubridate', 'ggthemes', 
+             'gridExtra', 'tidyverse', 
+             'readxl', 'knitr',
+             'data.table', 'ViSiElse')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
+```
+
+## Importing Data
+
+```{r}
+attacks <- read_csv("data/eventlog.csv")
+```
+
+
+
+
+
