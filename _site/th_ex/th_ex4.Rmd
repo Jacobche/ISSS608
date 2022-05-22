@@ -36,7 +36,7 @@ The data are processed by using appropriate **tidyverse** family of packages.
 
 The picture below shows a sketch of the initial design proposed. 
 
-![](img/image1.jpg)
+![](img/image11.jpg)
 
 
 # Installing & Launching R Packages
@@ -46,7 +46,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'data.table', 'knitr', 'ViSiElse', 'kableExtra', 'lubridate')
+packages = c('tidyverse', 'data.table', 'knitr', 'ViSiElse', 'kableExtra', 'lubridate', 'ggplot2', 'ggiraph', 'plotly', 'DT', 'patchwork','crosstalk')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -125,7 +125,7 @@ We will now calculate the duration of each activity in seconds and transform dat
 logs_daily_ss <- logs_two_p %>%
   group_by(date, participantId, currentMode) %>%
   summarise(count = n()) %>%
-  mutate(ss = count * 60) %>%
+  mutate(ss = count * 5 *60) %>%
   ungroup() %>%
   select(date, participantId, currentMode, ss) %>%
   pivot_wider(names_from=currentMode, values_from=ss,
@@ -146,7 +146,7 @@ logs_daily_ss <- logs_daily_ss %>%
 
 # ViSiElse Plot
 
-Before plotting, we will set an order to the activities using the code chunk below:
+Before plotting, we will set an order to the activities.
 
 ```{r}
 logs_daily_ss <- logs_daily_ss[,c(1,2,5,4,3,6)]
@@ -154,15 +154,65 @@ logs_daily_ss <- logs_daily_ss[,c(1,2,5,4,3,6)]
 
 
 ```{r}
-visielse(logs_daily_ss, group = logs_daily_ss$participantId, informer = NULL, method = "cut", pixel = 200)
+visielse(logs_daily_ss, group = logs_daily_ss$participantId, informer = NULL, method = "cut", pixel = 1000)
 ```
 
 We realize that in general Participant 4 is spending less time in restaurant and at recreation than Participant 7, possibly due to his unstable financials status. This is more obvious in the difference in time spent for recreation where Participant 4 might want to restrict his non-necessity related spending in order to improve his financial outlook. This also aligns with the time spent at home where Participant * spent much more time at home than Participant 7. We also spot that both participants are having the same amount of time spent at work. As for transport perspective, Participant 4 is spending less time than Participant 7, potentially due to a closer location from home.
 
 
-# Trellis Plot
+# Static Trellis Plot
+
+We have transformed the data accordingly and displayed a trellis plot partitioned by currentMode
+
+```{r echo = FALSE}
+logs_two_p_count <- logs_two_p %>%
+  group_by(year_month, participantId, currentMode) %>%
+  summarise(count = n()) %>%
+  mutate(hour = ceiling(count / 12)) %>%
+  ungroup() %>%
+  select(year_month, participantId, currentMode, hour)
+```
+
+```{r }
+qplot(year_month, hour, data = logs_two_p_count, color = participantId) +
+  facet_wrap(~ currentMode) +
+  labs(y= 'Hour', x= 'Time',
+     title = "Trend for Respective Activities Over Time") +
+  guides(color = guide_legend(title = "Participant Id")) +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(), axis.text.x=element_blank(),
+      axis.line= element_line(color= 'grey'))
+```
+
+We can see that despite a few of the irregular patterns, generally the time spent on each activity follow similar trends for both participant 4 and participant 7.
 
 
 
+# Interactive Trellis Plot
 
+In order to add interactivity to the previous trellis plot, we will use `ggplotly()` of **plotly** and `bscols()` of **crosstalk**.
 
+```{r}
+dd <- highlight_key(logs_two_p_count)
+
+graph1 <- qplot(year_month, hour, data = logs_two_p_count, color = participantId) +
+  facet_wrap(~ currentMode) +
+  labs(y= 'Hour', x= 'Time',
+     title = "Trend for Respective Activities Over Time") +
+  guides(color = guide_legend(title = "Participant Id")) +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(), axis.text.x=element_blank(),
+      axis.line= element_line(color= 'grey'))
+
+gg <- highlight(ggplotly(graph1),
+                "plotly_selected")
+
+crosstalk::bscols(gg, 
+                  widths = c(12, 12),
+                  DT::datatable(dd,
+                                rownames = FALSE,
+                                colnames = c('Year Month' = 'year_month',
+                                             'Participant Id' = 'participantId',
+                                             'Current Mode' = 'currentMode',
+                                             'Hour' = 'hour'),
+                                filter = 'top',
+                                class = 'display'))
+```
