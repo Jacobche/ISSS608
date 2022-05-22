@@ -30,7 +30,7 @@ In Challenge 2, you will use visual analytic techniques to address these questio
 
 In this take-home exercise, [**ViSiElse**](https://cran.r-project.org/web/packages/ViSiElse/index.html) and other appropriate visual analytics methods are used to reveal the life patterns of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/) while addressing the questions stated in the Task section.
 
-The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
+The data are processed by using appropriate **tidyverse** family of packages.
 
 # Sketch of Proposed Design
 
@@ -78,6 +78,8 @@ logs <- list.files(path = "./rawdata/ActivityLogs/",
 
 During our data exploration, we realized some of the participants starts off with *unstable* financial status while some having *stable* financial status. As such, we will choose 1 participant each, with partipantId 4 from the *unstable* financial status group and partipantId 7 from the *stable* financial status group, and to look after their differing routines.
 
+![](img/image10.jpg)
+
 The code chunk below limits our *logs* data to the only selected participants using `filter()` function.
 
 ```{r eval=FALSE}
@@ -102,13 +104,18 @@ kable(head(logs_two_p), format = "html", table.attr = "style='width:40%;'" ) %>%
   kable_classic(full_width = T, position = "center", )
 ```
 
-We will add a date column in order to track daily activities. We have also created a new column called *status* to incorporate "Sleeping" into *currentMode* which expands the original 5 distinct values to 6.
+We will add *date* and *year_month* columns for further analysis.
 
 ```{r}
 logs_two_p$date <- date(logs_two_p$`timestamp`)
+logs_two_p$year_month <- format(as.Date(logs_two_p$`timestamp`), "%Y-%m")
+```
 
-logs_two_p$status <- ifelse(logs_two_p$sleepStatus == 'Sleeping', 'Sleeping', logs_two_p$currentMode)
-unique(logs_two_p$status)
+
+Let's look at the different activities from *currentMode*:
+
+```{r echo=FALSE}
+unique(logs_two_p$currentMode)
 ```
 
 
@@ -116,40 +123,44 @@ We will now calculate the duration of each activity in seconds and transform dat
 
 ```{r}
 logs_daily_ss <- logs_two_p %>%
-  group_by(date, participantId, status) %>%
+  group_by(date, participantId, currentMode) %>%
   summarise(count = n()) %>%
   mutate(ss = count * 60) %>%
   ungroup() %>%
-  select(date, participantId, status, ss) %>%
-  pivot_wider(names_from=status, values_from=ss,
+  select(date, participantId, currentMode, ss) %>%
+  pivot_wider(names_from=currentMode, values_from=ss,
               values_fill=0)
 ```
 
-```{r}
+```{r echo=FALSE}
 kable(head(logs_daily_ss))
 ```
 
 
-```{r}
+```{r echo=FALSE}
 logs_daily_ss <- logs_daily_ss %>%
-  mutate(participantId = as.character(participantId))
+  mutate(participantId = as.character(participantId)) %>%
+  select(2:7)
 ```
 
 
+# ViSiElse Plot
+
+Before plotting, we will set an order to the activities using the code chunk below:
+
+```{r}
+logs_daily_ss <- logs_daily_ss[,c(1,2,5,4,3,6)]
+```
 
 
+```{r}
+visielse(logs_daily_ss, group = logs_daily_ss$participantId, informer = NULL, method = "cut", pixel = 200)
+```
 
-# visielse() graphs
-
-# ```{r}
-# visielse(logs_daily_ss, group = logs_daily_ss$participantId, informer = NULL, method = "cut")
-# ```
-
+We realize that in general Participant 4 is spending less time in restaurant and at recreation than Participant 7, possibly due to his unstable financials status. This is more obvious in the difference in time spent for recreation where Participant 4 might want to restrict his non-necessity related spending in order to improve his financial outlook. This also aligns with the time spent at home where Participant * spent much more time at home than Participant 7. We also spot that both participants are having the same amount of time spent at work. As for transport perspective, Participant 4 is spending less time than Participant 7, potentially due to a closer location from home.
 
 
-
-
-
+# Trellis Plot
 
 
 
