@@ -1,0 +1,82 @@
+---
+title: "Take-home Exercise 5"
+description: |
+  In this Take-home Exercise, I will explore to reveal the social areas of the city of Engagement, Ohio USA. I will also visualise and analyse locations with traffice bottleneck of the city.
+  
+author:
+  - name: Che Xuan 
+    url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.retina = 3)
+```
+
+
+# Task
+
+**Challenge 2: Patterns of Life** considers the patterns of daily life throughout the city. You will describe the daily routines for some representative people, characterize the travel patterns to identify potential bottlenecks or hazards, and examine how these patterns change over time and seasons.
+
+In Challenge 2, you will use visual analytic techniques to address these questions:
+
+- Assuming the volunteers are representative of the city’s population, characterize the distinct areas of the city that you identify. For each area you identify, provide your rationale and supporting data. Limit your response to 10 images and 500 words.
+
+- Where are the busiest areas in Engagement? Are there traffic bottlenecks that should be addressed? Explain your rationale. Limit your response to 10 images and 500 words.
+
+# Overview
+
+In this take-home exercise, appropriate visual analytics methods are used to reveal the social areas as well as the locations with traffic bottleneck of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/) while addressing the questions stated in the Task section.
+
+The data are processed by using appropriate **tidyverse** family of packages.
+
+# Sketch of Proposed Design
+
+The picture below shows a sketch of the initial design proposed. 
+
+![](img/image1.jpg)
+
+
+# Installing & Launching R Packages
+
+Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
+
+The chunk code below will do the trick.
+
+```{r}
+packages = c('tidyverse', 'data.table', 'knitr', 'ViSiElse', 'kableExtra', 'lubridate', 'ggplot2', 'ggiraph', 'plotly', 'DT', 'patchwork','crosstalk')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+# Importing Data
+
+The code chunk below imports *ActivityLogs files* from the rawdata folder into R by using [`list.files()`](https://rdrr.io/r/base/list.files.html), [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package, and `map_df()` of [**purrr**](https://www.rdocumentation.org/packages/purrr/versions/0.2.5) package, and and save it as a tibble data frame called *logs*.
+
+```{r eval=FALSE}
+memory.limit(size=160000)
+```
+
+```{r eval=FALSE}
+logs <- list.files(path = "./rawdata/ActivityLogs/",
+                   pattern = "*.csv", 
+                   full.names = T) %>% 
+  map_df(~read_csv(., 
+                   col_types = cols(.default = "c"))) 
+```
+
+
+
+
+
