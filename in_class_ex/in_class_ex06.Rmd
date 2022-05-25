@@ -187,8 +187,28 @@ print(logs_path)
 
 ## Plotting the Movement Paths
 
-TBC
+```{r}
+logs_path <- logs_selected %>%
+  group_by(participantId, day) %>%
+  summarize(m = mean(Timestamp), 
+            do_union=FALSE) %>%
+  st_cast("LINESTRING")
+```
 
+
+```{r}
+logs_path_selected <- logs_path %>%
+  filter(participantId==0)
+tmap_mode("plot")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1) +
+  tm_shape(logs_path_selected) +
+  tm_lines(col = "blue")
+tmap_mode("plot")
+```
 
 
 
