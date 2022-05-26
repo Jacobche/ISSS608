@@ -49,7 +49,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('tidyverse', 'data.table', 'knitr', 'ViSiElse', 'kableExtra', 'lubridate', 'ggplot2', 'ggiraph', 'plotly', 'DT', 'patchwork','crosstalk')
+packages = c('sf', 'tmap', 'tidyverse', 'lubridate', 'clock', 'sftime', 'rmarkdown')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -62,21 +62,171 @@ for(p in packages){
 
 # Importing Data
 
-The code chunk below imports *ActivityLogs files* from the rawdata folder into R by using [`list.files()`](https://rdrr.io/r/base/list.files.html), [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package, and `map_df()` of [**purrr**](https://www.rdocumentation.org/packages/purrr/versions/0.2.5) package, and and save it as a tibble data frame called *logs*.
+In the code chunk below, [`read_sf()`](https://r-spatial.github.io/sf/reference/st_read.html) of [**sf**](https://r-spatial.github.io/sf/) package is used to parse *School.csv*, *Pubs.csv*, *Apartments.csv*, *Buildings.csv*, *Employer.csv*, and *Restaurants.csv* from the data folder into R as sf data.frames. The 6 files parsed represented the various social areas we would like to explore.
 
-```{r eval=FALSE}
-memory.limit(size=160000)
+```{r}
+schools <- read_sf("data/wkt/Schools.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")  
+pubs <- read_sf("data/wkt/Pubs.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+apartments <- read_sf("data/wkt/Apartments.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+buildings <- read_sf("data/wkt/Buildings.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+employers <- read_sf("data/wkt/Employers.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+restaurants <- read_sf("data/wkt/Restaurants.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+
+print(buildings)
+print(restaurants)
 ```
 
-```{r eval=FALSE}
-logs <- list.files(path = "./rawdata/ActivityLogs/",
-                   pattern = "*.csv", 
-                   full.names = T) %>% 
-  map_df(~read_csv(., 
-                   col_types = cols(.default = "c"))) 
+# Plot Building Footprint Map
+
+The code chunk below plots the building polygon features by using [`tm_polygon()`](https://rdrr.io/cran/tmap/man/tm_polygons.html) of **tmap**.
+
+```{r}
+tmap_mode("view")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1)
+tmap_mode("plot")
 ```
 
 
+# Plotting A Composite Map
 
+The code chunk below is used to plot a composite map by combining the simple feature data.frames of the buildings and the various social areas.
+
+```{r}
+tmap_mode("view") +
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1) +
+tm_shape(employers) +
+  tm_dots(col = "red") +
+tm_shape(apartments) +
+  tm_dots(col = "lightblue") +
+tm_shape(pubs) +
+  tm_dots(col = "green") +
+tm_shape(restaurants) +
+  tm_dots(col = "blue") +
+tm_shape(schools) +
+  tm_dots(col = "yellow")
+tmap_mode("plot")
+```
+
+We arrive at the following points regarding social areas of the city:
+
+**Central Region**: Central business district of the city, with greatest number of companies/restaurants/pubs located in the center of this region. The inner region is surrounded by residential apartments.
+
+**North-West Region**: Mature estate with densely populated apartments as well as its own list of companies. Reasonably numbers of restaurants, pubs and schools are also seen in this region.
+
+**South Region** & **East Region**: Non-mature estates with relatively less apartments and companies. The number of restaurants, pubs and schools are proportionally less too.
+
+
+# Importing Data
+
+In the code chunk below, [`read_sf()`](https://r-spatial.github.io/sf/reference/st_read.html) of [**sf**](https://r-spatial.github.io/sf/) package is used to parse *ParticipantStatusLogs1.csv* from the rawdata folder into R as a simple feature data.frame.
+
+```{r eval=FALSE}
+logs <- read_sf("rawdata/ActivityLogs/ParticipantStatusLogs1.csv", 
+                options = "GEOM_POSSIBLE_NAMES=currentLocation")
+```
+
+
+# Data Wrangling
+
+```{r eval=FALSE}
+logs_selected <- logs %>%
+  mutate(Timestamp = date_time_parse(timestamp,
+                zone = "",
+                format = "%Y-%m-%dT%H:%M:%S")) %>%
+  mutate(day = get_day(Timestamp)) %>%
+  filter(currentMode == "Transport")
+```
+
+Data frame *logs_selected* is saved in RDS format to avoid uploading large files to Git.
+
+```{r eval=FALSE}
+saveRDS(logs_selected, 'data/logs_selected')
+```
+
+```{r}
+logs_selected <- readRDS('data/logs_selected')
+```
+
+
+# Plotting Hexagon Binning Mapp
+
+In the code chunk below, `st_make_grid()` of **sf** package is used to create hexagons.
+
+```{r}
+hex <- st_make_grid(buildings, 
+                    cellsize=100, 
+                    square=FALSE) %>%
+  st_sf() %>%
+  rowid_to_column('hex_id')
+plot(hex)
+```
+
+The code chunk below perform point in polygon overlay by using `st_join()` of **sf** package.
+
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                         hex, 
+                         join=st_within)
+plot(points_in_hex, pch='.')
+```
+
+
+In the code chunk below, `st_join()` of **sf** package is used to count the number of event points in the hexagons.
+
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                        hex, 
+                        join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+head(points_in_hex)
+```
+
+
+In the code chunk below, `left_join()` of **dplyr** package is used to perform a left-join by using *hex* as the target table and *points_in_hex* as the join table. The join ID is hex_id.
+
+```{r}
+hex_combined <- hex %>%
+  left_join(points_in_hex, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+```
+
+
+In the code chunk below, **tmap** package is used to create the hexagon binning map.
+
+```{r fig.width=12}
+tm_shape(hex_combined %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          style = "headtails") +
+  tm_borders(alpha = 0.1)
+```
+
+The darker-colored points are the busiest areas in Engagement. 
+
+The possible traffic bottlenecks (as seen in the figure below) are:
+
+- The path joining **Central Region** to **North-West Region**
+
+- The path joining **South Region** to **East Region**
+
+We also notice that these 2 paths are indeed the only paths possible connecting the regions together.
+
+![](img/image13.jpg)
 
 
