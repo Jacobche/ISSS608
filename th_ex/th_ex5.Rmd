@@ -39,7 +39,7 @@ The data are processed by using appropriate **tidyverse** family of packages.
 
 The picture below shows a sketch of the initial design proposed. 
 
-![](img/image1.jpg)
+![](img/image12.jpeg)
 
 
 # Installing & Launching R Packages
@@ -209,12 +209,16 @@ hex_combined <- hex %>%
 
 In the code chunk below, **tmap** package is used to create the hexagon binning map.
 
-```{r fig.width=12}
+```{r fig.width=8, fig.height=10}
 tm_shape(hex_combined %>%
            filter(pointCount > 0))+
   tm_fill("pointCount",
-          style = "headtails") +
-  tm_borders(alpha = 0.1)
+          style = "headtails",
+          title="Point Count") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(main.title = "The City of Engagement",
+    main.title.position = "center",
+    main.title.color = "purple")
 ```
 
 The darker-colored points are the busiest areas in Engagement. 
