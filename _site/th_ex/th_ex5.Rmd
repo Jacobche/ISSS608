@@ -49,7 +49,7 @@ Before we get started, it is important for us to ensure that the required R pack
 The chunk code below will do the trick.
 
 ```{r}
-packages = c('sf', 'tmap', 'tidyverse', 'lubridate', 'clock', 'sftime', 'rmarkdown')
+packages = c('sf', 'tmap', 'tidyverse', 'lubridate', 'clock', 'sftime', 'rmarkdown', 'ggiraph', 'plotly', 'DT', 'patchwork','crosstalk')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -88,11 +88,12 @@ The code chunk below plots the building polygon features by using [`tm_polygon()
 
 ```{r}
 tmap_mode("view")
-tm_shape(buildings)+
+tm_shape(buildings) +
 tm_polygons(col = "grey60",
            size = 1,
            border.col = "black",
-           border.lwd = 1)
+           border.lwd = 1) +
+tm_layout(title= "Building Footprint Map of the City of Engagement")
 tmap_mode("plot")
 ```
 
@@ -117,7 +118,8 @@ tm_shape(pubs) +
 tm_shape(restaurants) +
   tm_dots(col = "blue") +
 tm_shape(schools) +
-  tm_dots(col = "yellow")
+  tm_dots(col = "yellow") +
+tm_layout(title= "Composite Map of Social Areas of the City of Engagement")
 tmap_mode("plot")
 ```
 
@@ -162,7 +164,7 @@ logs_selected <- readRDS('data/logs_selected')
 ```
 
 
-# Plotting Hexagon Binning Mapp
+# Plotting Hexagon Binning Map
 
 In the code chunk below, `st_make_grid()` of **sf** package is used to create hexagons.
 
@@ -196,7 +198,6 @@ points_in_hex <- st_join(logs_selected,
 head(points_in_hex)
 ```
 
-
 In the code chunk below, `left_join()` of **dplyr** package is used to perform a left-join by using *hex* as the target table and *points_in_hex* as the join table. The join ID is hex_id.
 
 ```{r}
@@ -216,9 +217,20 @@ tm_shape(hex_combined %>%
           style = "headtails",
           title="Point Count") +
   tm_borders(alpha = 0.1) +
-  tm_layout(main.title = "The City of Engagement",
+  tm_layout(main.title = "Hexagon Binning Map of the City of Engagement",
     main.title.position = "center",
-    main.title.color = "purple")
+    main.title.color = "black") +
+  tm_scale_bar(text.size = 0.5,
+               color.dark = "black",
+               color.light = "white",
+               lwd = 1) +
+  tm_compass(type="radar",
+             north = 0,
+             text.size = 0.8,
+             show.labels = 3,
+             cardinal.directions = c("N", "E", "S", "W"),
+             lwd = 1,
+             position = c("right", "top"))
 ```
 
 The darker-colored points are the busiest areas in Engagement. 
@@ -232,5 +244,142 @@ The possible traffic bottlenecks (as seen in the figure below) are:
 We also notice that these 2 paths are indeed the only paths possible connecting the regions together.
 
 ![](img/image13.jpg)
+
+# Interactive Scatterplot
+
+In the code chunk below, `ggplotly()` of **plotly** and `bscols()` of **crosstalk** are used to plot an interactive scatter plot with a table to visualize the number of event points in the hexagons
+
+```{r}
+dd <- highlight_key(points_in_hex)
+
+graph1 <- ggplot(dd, aes(x = hex_id, y = pointCount)) +
+  geom_point(size=1) +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(), axis.text.x=element_blank(), axis.line= element_line(color= 'grey')) +
+  ggtitle("Distribution of Hex Id") +
+  xlab("Hex Id") +
+  ylab("Point Count")
+
+gg <- highlight(ggplotly(graph1),
+                "plotly_selected")
+
+crosstalk::bscols(gg, 
+                  widths = c(12,12),
+                  DT::datatable(dd,
+                                rownames = FALSE,
+                                colnames = c('Hex Id' = 'hex_id',
+                                             'Point Count' = 'pointCount'), 
+                                filter = 'top',
+                                class = 'display'))
+```
+
+# Plotting Hexagon Binning Map (AM vs PM)
+
+We will now look at the difference in the Hexagon Binning Map of AM vs that of PM.
+
+```{r echo=FALSE}
+logs_selected_am <- logs_selected %>%
+  mutate(am = am(Timestamp)) %>%
+  filter(am == "TRUE")
+```
+
+```{r echo=FALSE}
+points_in_hex_am <- st_join(logs_selected_am, 
+                         hex, 
+                         join=st_within)
+```
+
+```{r echo=FALSE}
+points_in_hex_am <- st_join(logs_selected_am, 
+                        hex, 
+                        join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+```
+
+```{r echo=FALSE}
+hex_combined_am <- hex %>%
+  left_join(points_in_hex_am, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+```
+
+```{r}
+tm_shape(hex_combined_am %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          style = "headtails",
+          title="Point Count") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(main.title = "Hexagon Binning Map (AM)",
+    main.title.position = "center",
+    main.title.color = "black") +
+  tm_scale_bar(text.size = 0.5,
+               color.dark = "black",
+               color.light = "white",
+               lwd = 1) +
+  tm_compass(type="radar",
+             north = 0,
+             text.size = 0.8,
+             show.labels = 2,
+             cardinal.directions = c("N", "E", "S", "W"),
+             lwd = 1,
+             position = c("right", "top"))
+```
+
+
+```{r echo=FALSE}
+logs_selected_pm <- logs_selected %>%
+  mutate(am = am(Timestamp)) %>%
+  filter(am == "FALSE")
+```
+
+```{r echo=FALSE}
+points_in_hex_pm <- st_join(logs_selected_pm, 
+                         hex, 
+                         join=st_within)
+```
+
+```{r echo=FALSE}
+points_in_hex_pm <- st_join(logs_selected_pm, 
+                        hex, 
+                        join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+```
+
+```{r echo=FALSE}
+hex_combined_pm <- hex %>%
+  left_join(points_in_hex_pm, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+```
+
+```{r}
+tm_shape(hex_combined_pm %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          style = "headtails",
+          title="Point Count") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(main.title = "Hexagon Binning Map (PM)",
+    main.title.position = "center",
+    main.title.color = "black") +
+  tm_scale_bar(text.size = 0.5,
+               color.dark = "black",
+               color.light = "white",
+               lwd = 1) +
+  tm_compass(type="radar",
+             north = 0,
+             text.size = 0.8,
+             show.labels = 2,
+             cardinal.directions = c("N", "E", "S", "W"),
+             lwd = 1,
+             position = c("right", "top"))
+```
+
+From both maps, we can see that the path joining **Central Region** to **North-West Region** is more prominent in AM than in PM. Same pattern is also spotted for the path joining **South Region** to **East Region**. This might be because both paths are the main paths for people to travel to work in the morning, but after work in the evening some people may have gone to other places for dinner or gatherings and returned home using other routes thereafter.
+
+
+
 
 
