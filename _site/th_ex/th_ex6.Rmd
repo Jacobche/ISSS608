@@ -63,5 +63,101 @@ for(p in packages){
 
 # Importing Data
 
-In the code chunk below, [`read_sf()`](https://r-spatial.github.io/sf/reference/st_read.html) of [**sf**](https://r-spatial.github.io/sf/) package is used to parse *School.csv*, *Pubs.csv*, *Apartments.csv*, *Buildings.csv*, *Employer.csv*, and *Restaurants.csv* from the data folder into R as sf data.frames. The 6 files parsed represented the various social areas we would like to explore.
+The code chunk below imports *SocialNetwork.csv* and *Participants.csv* from the rawdata folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save them as tibble data frames called *social* and *participants*.
+
+```{r eval=FALSE}
+social <- read_csv("rawdata/SocialNetwork.csv")
+participants <- read_csv("rawdata/Participants.csv")
+
+glimpse(social)
+```
+
+# Data Wrangling
+
+We will add 1 to each Participant Id in *social* and *participants* as vertex id is not allowed to be zero.
+
+```{r eval=FALSE}
+participants$participantId = participants$participantId + 1
+
+social$participantIdFrom = social$participantIdFrom + 1
+social$participantIdTo = social$participantIdTo + 1
+```
+
+We will re-order the fields in *social* data frame such that participantIdFrom & participantIdTo will become the first two columns. Weekday and year_month columns are also added to this data frame.
+
+```{r eval=FALSE}
+social <- social %>%
+  select(participantIdFrom, participantIdTo, timestamp) %>%
+  mutate(weekday = wday(timestamp,
+                        label = TRUE,
+                        abbr = FALSE))
+```
+
+For the ease of visualization, we will aggregate by participantIdFrom, participantIdTo and Weekday using the code chunk below. Weight is set as greater than 55 to ensure a simpler network graph
+
+```{r eval=FALSE}
+social_aggregated <- social %>%
+  group_by(participantIdFrom, participantIdTo, weekday) %>%
+    summarise(weight = n()) %>%
+  filter(participantIdFrom != participantIdTo) %>%
+  filter(weight > 55) %>%
+  ungroup()
+```
+
+Data frames *social_aggregated* and *participants* are saved in RDS format to avoid uploading large files to Git.
+
+```{r eval=FALSE}
+saveRDS(social_aggregated, 'data/social_aggregated.rds')
+saveRDS(participants, 'data/participants.rds')
+```
+
+```{r}
+social_aggregated <- readRDS('data/social_aggregated.rds')
+participants <- readRDS('data/participants.rds')
+```
+
+The code chunk below helps to ensure the *participants_selected* contains all distinct Participant Ids from the *social_aggregated* data frame.
+
+```{r}
+participants_selected <- participants %>%
+  filter(participantId %in% social_aggregated$participantIdFrom) %>%
+  filter(participantId %in% social_aggregated$participantIdTo)
+```
+
+
+# Building Tidygraph Data Model
+
+In the code chunk below, `tbl_graph()` of **tinygraph** package is used to build a tidygraph's network graph data.frame.
+
+```{r}
+social_graph <- graph_from_data_frame(social_aggregated,
+                           vertices = participants_selected) %>%
+  as_tbl_graph()
+
+social_graph
+```
+
+# Basic Network Graph
+
+The code chunk below uses `ggraph()`, `geom-edge_link()` and `geom_node_point()` to plot a network graph by using *social_graph*.
+
+```{r}
+ggraph(social_graph) +
+  geom_edge_link() +
+  geom_node_point()
+```
+
+We can see that this give rises to a series of network plots where we can find relatively simple network such as two persons and relatively complex network such as the one on the upper right corner. Our next task is to extract out the least, moderate and most complex networks and to investigate them in greater detail.
+
+
+
+
+
+
+
+
+
+
+
+
 
