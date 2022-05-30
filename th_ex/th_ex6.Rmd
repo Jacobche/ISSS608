@@ -1,0 +1,67 @@
+---
+title: "Take-home Exercise 6"
+description: |
+  In this Take-home Exercise, I will explore to reveal the patterns of community interactions of the city of Engagement (Ohio US) by using social network analysis approach.
+  
+author:
+  - name: Che Xuan 
+    url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.retina = 3)
+```
+
+
+# Task
+
+**Challenge 1: Demographics and Relationships** involves understanding the city’s demographics. Given social networks and other information about the city, you will analyze the available data to prepare a one-page fact sheet about the city’s demographics, its neighborhoods, and its business base.
+
+In Challenge 1, you will use visual analytic techniques to address the following questions:
+
+- Consider the social activities in the community. What patterns do you see in the social networks in the town? Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
+
+# Overview
+
+In this take-home exercise, social network approach is used to reveal the patterns of community interactions of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/) while addressing the questions stated in the Task section.
+
+The data are processed by using appropriate **tidyverse** family of packages.
+
+# Sketch of Proposed Design
+
+The picture below shows a sketch of the initial design proposed. 
+
+![](img/image1.jpg)
+
+
+# Installing & Launching R Packages
+
+Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
+
+The chunk code below will do the trick.
+
+```{r}
+packages = c('igraph', 'tidygraph', 
+             'ggraph', 'visNetwork', 
+             'lubridate', 'clock',
+             'tidyverse', 'ggmap')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+# Importing Data
+
+In the code chunk below, [`read_sf()`](https://r-spatial.github.io/sf/reference/st_read.html) of [**sf**](https://r-spatial.github.io/sf/) package is used to parse *School.csv*, *Pubs.csv*, *Apartments.csv*, *Buildings.csv*, *Employer.csv*, and *Restaurants.csv* from the data folder into R as sf data.frames. The 6 files parsed represented the various social areas we would like to explore.
+
