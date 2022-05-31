@@ -163,7 +163,7 @@ social_graph
 
 The code chunk below uses `ggraph()`, `geom-edge_link()` and `geom_node_point()` to plot a network graph by using *social_graph*.
 
-```{r fig.width=12}
+```{r fig.width=12, fig.height=8}
 ggraph(social_graph) +
   geom_edge_link(aes(colour = 'red')) +
   geom_node_point() + 
@@ -182,7 +182,7 @@ The 3 networks varied in complexity are identified as follows:
 
 ## By Age Group
 
-```{r fig.width=12}
+```{r fig.width=12, fig.height=8}
 ggraph(social_graph) + 
   geom_edge_link(aes(width=weight), 
                  alpha=0.05) +
@@ -195,7 +195,7 @@ ggraph(social_graph) +
 
 ## By Interest Group
 
-```{r fig.width=12}
+```{r fig.width=12, fig.height=8}
 ggraph(social_graph) + 
   geom_edge_link(aes(width=weight), 
                  alpha=0.05) +
@@ -208,7 +208,7 @@ ggraph(social_graph) +
 
 ## By Household Size
 
-```{r fig.width=12}
+```{r fig.width=12, fig.height=8}
 ggraph(social_graph) + 
   geom_edge_link(aes(width=weight), 
                  alpha=0.05) +
@@ -221,7 +221,7 @@ ggraph(social_graph) +
 
 ## By Education Level
 
-```{r fig.width=12}
+```{r fig.width=12,fig.height=8}
 ggraph(social_graph) + 
   geom_edge_link(aes(width=weight), 
                  alpha=0.05) +
@@ -251,7 +251,7 @@ This network seems to represent 2 siblings who have the same interest and househ
 
 In the code chunk below, `facet_nodes()` of **ggraph** is used to plot a framed facet network graph.
 
-```{r fig.width=12}
+```{r fig.width=12,fig.height=10}
 set_graph_style()
 ggraph(social_graph) + 
   geom_edge_link(aes(width=weight), 
