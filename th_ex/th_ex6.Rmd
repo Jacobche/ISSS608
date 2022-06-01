@@ -50,7 +50,8 @@ The chunk code below will do the trick.
 packages = c('igraph', 'tidygraph', 
              'ggraph', 'visNetwork', 
              'lubridate', 'clock',
-             'tidyverse', 'ggmap')
+             'tidyverse', 'ggmap',
+             'plotly', 'DT', 'patchwork','crosstalk')
 
 for(p in packages){
   if(!require(p, character.only = T)){
@@ -139,11 +140,41 @@ participants_selected$educationLevel <- sub('Low', 'a-Low',participants_selected
 participants_selected$educationLevel <- sub('HighSchoolOrCollege', 'b-HighSchoolOrCollege',participants_selected$educationLevel)
 participants_selected$educationLevel <- sub('Bachelors', 'c-Bachelors',participants_selected$educationLevel)
 participants_selected$educationLevel <- sub('Graduate', 'd-Graduate',participants_selected$educationLevel)
-                                    
-                              
+```
 
-# participants_selected$educationLevel = factor(participants_selected$educationLevel,
-#                                               levels=c('Low','HighSchoolOrCollege','Bachelors','Graduate'))
+
+# Interactive Bar Chart
+
+In the code chunk below, `ggplotly()` of **plotly** and `bscols()` of **crosstalk** are used to plot an interactive bar chart with a table to visualize the number of participants in network analysis by age group.
+
+```{r}
+dd <- highlight_key(participants_selected)
+
+graph1 <- ggplot(dd, aes(x = age_group)) +
+  geom_bar(fill = '#468499') +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey')) +
+  ggtitle("Distribution of Participant Count Across Age Group") +
+  xlab("Age Group") +
+  ylab("Count of Par")
+
+gg <- highlight(ggplotly(graph1),
+                "plotly_selected")
+
+crosstalk::bscols(gg, 
+                  widths = c(12,12),
+                  DT::datatable(dd,
+                                rownames = FALSE,
+                                colnames = c('Participant Id' = 'participantId',
+                                             'Household Size' = 'householdSize',
+                                             'Have Kids' = 'haveKids',
+                                             'Age' = 'age',
+                                             'Education Level' = 'educationLevel',
+                                             'Interest Group' = 'interestGroup',
+                                             'Joviality' = 'joviality',
+                                             'Age Group' = 'age_group'),
+                                filter = 'top',
+                                class = 'display'))
 ```
 
 
@@ -262,6 +293,7 @@ ggraph(social_graph) +
   facet_nodes(~educationLevel)+
   th_foreground(foreground = "grey80",  
                 border = TRUE) +
+  labs(title = "Facet Network Graph by Education Level") +
   theme(legend.position = 'bottom')
 ```
 
@@ -304,5 +336,4 @@ visNetwork(participants_selected_int,
   visLegend() %>%
   visLayout(randomSeed = 123)
 ```
-
 
