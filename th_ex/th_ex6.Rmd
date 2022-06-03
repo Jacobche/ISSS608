@@ -219,7 +219,7 @@ ggraph(social_graph) +
                  alpha=0.05) +
   scale_edge_width(range = c(0.1, 5)) +
   geom_node_point(aes(colour = age_group, 
-                      size = 2)) +
+                      size = centrality_betweenness())) +
   labs(title = "Network Graph by Age Group") +
   theme_graph()
 ```
@@ -232,7 +232,7 @@ ggraph(social_graph) +
                  alpha=0.05) +
   scale_edge_width(range = c(0.1, 5)) +
   geom_node_point(aes(colour = interestGroup, 
-                      size = 2)) +
+                      size = centrality_betweenness())) +
   labs(title = "Network Graph by Interest Group") +
   theme_graph()
 ```
@@ -245,7 +245,7 @@ ggraph(social_graph) +
                  alpha=0.05) +
   scale_edge_width(range = c(0.1, 5)) +
   geom_node_point(aes(colour = as.factor(householdSize), 
-                      size = 2)) +
+                      size = centrality_betweenness())) +
   labs(title = "Network Graph by Household Size") +
   theme_graph()
 ```
@@ -258,7 +258,7 @@ ggraph(social_graph) +
                  alpha=0.05) +
   scale_edge_width(range = c(0.1, 5)) +
   geom_node_point(aes(colour = educationLevel, 
-                      size = 2)) +
+                      size = centrality_betweenness())) +
   labs(title = "Network Graph by Education Level") +
   theme_graph()
 ```
@@ -299,6 +299,7 @@ ggraph(social_graph) +
 
 We can see that there are a greater level of connection among participants of HighSchoolOrCollege / Bachelor levels. There is limited connection among participants of Graduate level while there is almost no connection among those with Low education level.
 
+
 # Interactive Network Graph
 
 In the code chunk below, some data wrangling are used to prepare the data for **visNetwork**, and `visOptions()` is used to incorporate interactivity features in the network graph.
@@ -312,7 +313,7 @@ social_edges_aggregated <- social %>%
   group_by(from, to) %>%
     summarise(weight = n()) %>%
   filter(from!=to) %>%
-  filter(weight > 50) %>%
+  filter(weight > 55) %>%
   ungroup()
 ```
 
