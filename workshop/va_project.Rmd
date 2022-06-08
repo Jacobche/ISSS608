@@ -1,0 +1,76 @@
+---
+title: "Visual Analytics Project"
+description: |
+  I will explore the health of various employers in the city of Engagement, Ohio USA.
+author:
+  - name: Che Xuan 
+    url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.retina = 3)
+```
+
+# Overview
+
+In this project, appropriate static and interactive statistical graphics methods are used to reveal the employment patterns of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/).
+
+The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
+
+
+# Installing & Launching R Packages
+
+Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
+
+The chunk code below will do the trick.
+
+```{r}
+packages = c('tidyverse', 'lubridate')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+# Importing Data
+
+The code chunk below imports *TravelJournal.csv* and *Employers.csv* from the data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr**](https://readr.tidyverse.org/) package and save them as tibble data frames called *travel* and *employers*.
+
+```{r}
+participants <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Participants.csv")
+checkin <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/CheckinJournal.csv")
+travel <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/TravelJournal.csv")
+employers <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Employers.csv")
+jobs <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Jobs.csv")
+```
+
+# Data Wrangling
+
+```{r}
+checkin_work <- checkin %>%
+  filter(venueType == 'Workplace')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
