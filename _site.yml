@@ -34,6 +34,8 @@ navbar:
         href: "in_class_ex/in_class_ex06.html"
       - text: "In-class Exercise 7"
         href: "in_class_ex/in_class_ex07.html"
+      - text: "In-class Exercise 9"
+        href: "in_class_ex/in_class_ex09.html"
     - text: "Visual Analytics Project"
       menu:
       - text: "VAST Challenge 2022"
