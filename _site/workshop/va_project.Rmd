@@ -42,6 +42,7 @@ for(p in packages){
 
 ```
 
+
 # Importing Data
 
 ```{r echo=FALSE}
@@ -112,7 +113,8 @@ By Company Size
 jobs_employers_1 <- jobs_employers %>%
   group_by(jobs_count) %>%
   summarise(companies_count = n()) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(percentage = round(companies_count/sum(companies_count)*100, 1))
 ```
 
 ```{r echo=FALSE}
@@ -130,6 +132,84 @@ ggplot(jobs_employers_1,
   theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(), axis.text.x=element_blank(),
       axis.ticks.y= element_blank(), axis.line= element_line(color= 'grey'))
 ```
+
+
+```{r}
+write.csv(jobs_employers,"jobs_employers.csv", row.names = FALSE)
+```
+
+```{r}
+write.csv(jobs_employers_1,"jobs_employers_1.csv", row.names = FALSE)
+```
+
+
+Travel to work
+
+```{r}
+travel$year_month <- format(as.Date(travel$`travelEndTime`), "%Y-%m")
+travel$day <- day(travel$`travelEndTime`)
+travel$wkday <- weekdays(travel$`travelEndTime`)
+```
+
+```{r}
+travel_to_work <- travel %>%
+  filter(purpose == 'Work/Home Commute') %>%
+  inner_join(y=employers, by = c("travelEndLocationId" = "employerId")) %>%
+  select(participantId, travelEndTime, year_month, day, wkday, travelEndLocationId, purpose, location, buildingId) %>%
+  rename('employerId' = 'travelEndLocationId')
+```
+
+```{r}
+travel_to_work$purpose <- sub('Work/Home Commute', 
+                              'Work',
+                              travel_to_work$purpose)
+```
+
+```{r}
+travel_to_work_daily_count <- travel_to_work %>%
+  group_by(employerId, year_month, day, wkday) %>%
+  summarise(count = n()) %>%
+  ungroup()
+```
+
+```{r}
+travel_to_work_monthly_change <- travel_to_work_daily_count %>%
+  group_by(employerId, year_month) %>%
+  summarise(monthly_employees = max(count)) %>%
+  mutate(mom_change = coalesce(monthly_employees - lead(monthly_employees),0),
+         mom_turnover_rate = coalesce((monthly_employees - lead(monthly_employees))/monthly_employees,0)) %>%
+  ungroup()
+```
+
+```{r}
+turnover_by_employers <- travel_to_work_monthly_change %>%
+  group_by(employerId) %>%
+  summarise(turnovers = sum(mom_change)) %>%
+  ungroup()
+```
+
+```{r}
+employers_revised <- employers %>%
+  inner_join(y=turnover_by_employers, by = c("employerId" = "employerId"))
+```
+
+```{r}
+employers_revised$level <- cut(employers_revised$turnovers, breaks = c(-1,0,2,15), labels = c("Low Rate","Medium Rate","High Rate"))
+```
+
+
+```{r}
+write.csv(employers_revised,"employers_revised.csv", row.names = FALSE)
+```
+
+
+
+
+
+
+
+
+
 
 
 

@@ -27,7 +27,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     output$distPlot <- renderPlot({
-        x <- unlist(exam[,input$variable])
+        x <- unlist(exam[,input$variable]) #Create a new variable here
         ggplot(exam, aes(x)) +
             geom_histogram(bins = input$bins,
                           color="black",
