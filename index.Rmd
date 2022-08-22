@@ -3,8 +3,12 @@ title: "Visual Analytics"
 description: |
   Welcome to Jacob Che's website.
   
-  This is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). Contents can be accessed via the navigation bars *Take-home Exercise*, *In-class Exercise* and lastly *Visual Analytics Project*.
-
+  This is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). 
+  
+  Contents under navigation bars *Take-home Exercise* & *In-class Exercise* are built using R Markdown.
+  
+  Contents under navigation bar *Visual Analytics Project* are developed using R Shiny.
+  
 site: distill::distill_website
 ---
 

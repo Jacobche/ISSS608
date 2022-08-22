@@ -11,10 +11,10 @@
     {
       "path": "index.html",
       "title": "Visual Analytics",
-      "description": "Welcome to Jacob Che's website.\n\nThis is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). Contents can be accessed via the navigation bars *Take-home Exercise*, *In-class Exercise* and lastly *Visual Analytics Project*.\n",
+      "description": "Welcome to Jacob Che's website.\n\nThis is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). \n\nContents under navigation bars *Take-home Exercise* & *In-class Exercise* are built using R Markdown.\n\nContents under navigation bar *Visual Analytics Project* are developed using R Shiny.\n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2022-08-22T11:17:56+08:00"
+      "last_modified": "2022-08-22T11:28:00+08:00"
     }
   ],
   "collections": []
