@@ -1,9 +1,9 @@
 ---
 title: "Visual Analytics"
 description: |
-  Welcome to Che Xuan's website.
+  Welcome to Jacob Che's website.
   
-  We have started the course on **ISSS608 Visual Analytics and Applications** since 16^th^ April 2022. More content will be updated under the navigation bars *Take-home Exercise* and *In-class Exercise* as we progress further into the course.
+  This is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). Contents can be accessed via the navigation bars *Take-home Exercise*, *In-class Exercise* and lastly *Visual Analytics Project*.
 
 site: distill::distill_website
 ---

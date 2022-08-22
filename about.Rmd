@@ -1,7 +1,7 @@
 ---
 title: "About this site"
 description: |
-  This website consists of a collection of works done for courses I took during my MITB (Analytics) journey. I hope you enjoy reading them!
+  As part of my learning journey with SMU's [**Master of IT in Business**](https://scis.smu.edu.sg/master-it-business) program.
 ---
 
 ```{r setup, include=FALSE}

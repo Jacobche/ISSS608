@@ -3,18 +3,18 @@
     {
       "path": "about.html",
       "title": "About this site",
-      "description": "This website consists of a collection of works done for courses I took during my MITB (Analytics) journey. I hope you enjoy reading them!",
+      "description": "As part of my learning journey with SMU's [**Master of IT in Business**](https://scis.smu.edu.sg/master-it-business) program.",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2022-06-28T17:47:24+08:00"
+      "last_modified": "2022-08-22T11:02:01+08:00"
     },
     {
       "path": "index.html",
       "title": "Visual Analytics",
-      "description": "Welcome to Che Xuan's website.\n\nWe have started the course on **ISSS608 Visual Analytics and Applications** since 16^th^ April 2022. More content will be updated under the navigation bars *Take-home Exercise* and *In-class Exercise* as we progress further into the course.\n",
+      "description": "Welcome to Jacob Che's website.\n\nThis is part of my learning journey for Master studies with SMU's **Master of IT in Business** (MITB). Contents can be accessed via the navigation bars *Take-home Exercise*, *In-class Exercise* and lastly *Visual Analytics Project*.\n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2022-06-28T18:13:47+08:00"
+      "last_modified": "2022-08-22T11:06:25+08:00"
     }
   ],
   "collections": []

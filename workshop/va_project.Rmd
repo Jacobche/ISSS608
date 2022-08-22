@@ -1,7 +1,7 @@
 ---
 title: "Visual Analytics Project"
 description: |
-  I will explore the health of various employers in the city of Engagement, Ohio USA.
+  In a group of 3, we are to explore on the economic patterns of the city of Engagement, Ohio USA.
 author:
   - name: Che Xuan 
     url: https://www.linkedin.com/in/jacob-che-xuan-b646a9123/
@@ -19,18 +19,19 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # Overview
 
-In this project, appropriate static and interactive statistical graphics methods are used to reveal the employment patterns of the [city of Engagement, Ohio USA](https://vast-challenge.github.io/2022/).
+In this project, we aim to build an interactive web-based application using open-source R on Shiny.io. As part of Challenge 3 of [VAST Challenge 2022](https://vast-challenge.github.io/2022/), various visual analytic techniques will be used to explore the economic patterns of the City of Engagement, Ohio USA. 
 
-The data are processed by using appropriate **tidyverse** family of packages and the statistical graphics are prepared using **ggplot2** and its extensions.
+# Final Delivery via Shiny
+
+[Shiny.io](https://isss608group7.shinyapps.io/Group_7/)
 
 
-# Installing & Launching R Packages
+```{r echo=FALSE, eval = FALSE}
 
-Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
+#Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.
 
-The chunk code below will do the trick.
+#The chunk code below will do the trick.
 
-```{r}
 packages = c('tidyverse', 'lubridate', 'treemapify', 'ggiraph', 'plotly', 'DT', 'patchwork', 'gganimate', 'treemap', 'd3treeR')
 
 for(p in packages){
@@ -43,9 +44,10 @@ for(p in packages){
 ```
 
 
-# Importing Data
 
-```{r echo=FALSE}
+
+```{r echo=FALSE, eval = FALSE}
+# Importing Data
 participants <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Participants.csv")
 checkin <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/CheckinJournal.csv")
 travel <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/TravelJournal.csv")
@@ -53,16 +55,18 @@ employers <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Employers.csv")
 jobs <- read_csv("C:/Jacobche/ISSS608/th_ex/rawdata/Jobs.csv")
 ```
 
-# Data Wrangling
 
-```{r echo=FALSE}
+
+```{r echo=FALSE, eval = FALSE}
+# Data Wrangling
 checkin_work <- checkin %>%
   filter(venueType == 'Workplace')
 ```
 
-Percentage of jobs which involve weekends duties:
 
-```{r echo=FALSE}
+
+```{r echo=FALSE, eval = FALSE}
+# Percentage of jobs which involve weekends duties:
 jobs_weekends <- jobs %>%
   mutate(day_type = ifelse(str_detect(daysToWork, c("Saturday", "Sunday")) == TRUE, "weekends", "weekdays")) %>%
   group_by(day_type) %>%
@@ -70,7 +74,7 @@ jobs_weekends <- jobs %>%
   ungroup()
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
 ggplot(jobs_weekends, 
        aes(x = 2, y = count, fill = day_type)) +
   geom_col() +
@@ -86,9 +90,8 @@ ggplot(jobs_weekends,
         axis.text = element_blank())
 ```
 
-Look at by employers
-
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
+#Look at by employers
 jobs_employers <- jobs %>%
   group_by(employerId) %>%
   summarise(jobs_count = n(),
@@ -96,20 +99,21 @@ jobs_employers <- jobs %>%
   ungroup()
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
 jobs_employers$employerId = as.character(jobs_employers$employerId)
 ```
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
 ggplot(jobs_employers, aes(area = avg_hourly_rate, fill = avg_hourly_rate)) +
   geom_treemap() +
   scale_fill_distiller(direction = 1)
 ```
 
-By Company Size
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
+# By Company Size
+
 jobs_employers_1 <- jobs_employers %>%
   group_by(jobs_count) %>%
   summarise(companies_count = n()) %>%
@@ -117,11 +121,11 @@ jobs_employers_1 <- jobs_employers %>%
   mutate(percentage = round(companies_count/sum(companies_count)*100, 1))
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
 jobs_employers_1$jobs_count = as.character(jobs_employers_1$jobs_count)
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, eval = FALSE}
 ggplot(jobs_employers_1, 
        aes(x = reorder(jobs_count, companies_count), y=companies_count)) +
   geom_bar(stat = "identity", color="black", fill="light blue") +
@@ -134,24 +138,25 @@ ggplot(jobs_employers_1,
 ```
 
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 write.csv(jobs_employers,"jobs_employers.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 write.csv(jobs_employers_1,"jobs_employers_1.csv", row.names = FALSE)
 ```
 
 
-Travel to work
 
-```{r}
+
+```{r echo=FALSE, eval = FALSE}
+# Travel to work
 travel$year_month <- format(as.Date(travel$`travelEndTime`), "%Y-%m")
 travel$day <- day(travel$`travelEndTime`)
 travel$wkday <- weekdays(travel$`travelEndTime`)
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 travel_to_work <- travel %>%
   filter(purpose == 'Work/Home Commute') %>%
   inner_join(y=employers, by = c("travelEndLocationId" = "employerId")) %>%
@@ -159,20 +164,20 @@ travel_to_work <- travel %>%
   rename('employerId' = 'travelEndLocationId')
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 travel_to_work$purpose <- sub('Work/Home Commute', 
                               'Work',
                               travel_to_work$purpose)
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 travel_to_work_daily_count <- travel_to_work %>%
   group_by(employerId, year_month, day, wkday) %>%
   summarise(count = n()) %>%
   ungroup()
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 travel_to_work_monthly_change <- travel_to_work_daily_count %>%
   group_by(employerId, year_month) %>%
   summarise(monthly_employees = max(count)) %>%
@@ -181,24 +186,24 @@ travel_to_work_monthly_change <- travel_to_work_daily_count %>%
   ungroup()
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 turnover_by_employers <- travel_to_work_monthly_change %>%
   group_by(employerId) %>%
   summarise(turnovers = sum(mom_change)) %>%
   ungroup()
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 employers_revised <- employers %>%
   inner_join(y=turnover_by_employers, by = c("employerId" = "employerId"))
 ```
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 employers_revised$level <- cut(employers_revised$turnovers, breaks = c(-1,0,2,15), labels = c("Low Rate","Medium Rate","High Rate"))
 ```
 
 
-```{r}
+```{r echo=FALSE, eval = FALSE}
 write.csv(employers_revised,"employers_revised.csv", row.names = FALSE)
 ```
 

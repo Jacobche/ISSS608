@@ -5,22 +5,19 @@ library(crosstalk)
 
 
 jobs_employers_1 <- read_csv("data/jobs_employers_1.csv")
+jobs_employers_1$jobs_count <- as.character(jobs_employers_1$jobs_count)
 
 ui <- fluidPage(
-    titlePanel("No. of Jobs Required by Employers"),
+    titlePanel("How many Employers having how many Jobs ?"),
     sidebarLayout(
         sidebarPanel(
-            # selectInput(inputId = "variable_che_3",
-            #             label = "Jobs Count:",
-            #             choices = list("two jobs" = "2",
-            #                            "three jobs" = "3",
-            #                            "four jobs" = "4",
-            #                            "five jobs" = "5",
-            #                            "six jobs" = "6",
-            #                            "seven jobs" = "7",
-            #                            "eight jobs" = "8",
-            #                            "nine jobs" = "9")
-            #             ),
+            selectInput(inputId = "variable_che_3",
+                        label = "Plot Type:",
+                        choices = list("Bar Plot" = "bar",
+                                       "Dot Plot" = "scatter",
+                                       "Line Plot" = "violin"),
+            selected = "bar"
+                        ),
             checkboxInput(inputId = "showData",
                           label = "Show data table",
                           value = TRUE)
@@ -33,44 +30,26 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session){
-    # dataset = reactive({
-    #   jobs_employers_1
-    # })
-    # 
-    # output$barPlot <- renderPlotly({
-    #   p <- ggplot(data = dataset(), 
-    #              aes(x = reorder(jobs_count, companies_count), y=companies_count)) +
-    #         geom_bar(stat = "identity", color="black", fill="light blue") +
-    #         geom_text(aes(label=companies_count),
-    #                   position = position_stack(vjust = 0.5)) +
-    #         coord_flip() +
-    #         labs(y= 'Number of Companies', x= 'Jobs Count') +
-    #         theme(axis.ticks.x= element_blank(), axis.ticks.y= element_blank(),
-    #               axis.line= element_line(color= 'grey'))
-    #   ggplotly(p)
-    #   })
-    #   
-    #   output$table <- DT::renderDataTable({
-    #     if(input$showData){
-    #       DT::datatable(data = dataset(),
-    #                     rownames = FALSE)
-    #         }
-    #     
-    # })
-  
     output$barPlot <- renderPlotly({
       p <- jobs_employers_1 %>%
         plot_ly( x = ~jobs_count,
                  y = ~companies_count,
-                 type = 'bar',
-                 orientation = 'v')
+                 type = input$variable_che_3,
+                 orientation = 'v') %>% 
+        layout(xaxis = list(categoryorder = "total descending",
+                            title = 'No. of Jobs Required'),
+               yaxis = list(title = 'No. of Employers'))
+      
     })
     
     output$table <- DT::renderDataTable({
       d <- event_data("plotly_click")
       if(input$showData){
-        DT::datatable(data = d,
-                      rownames = FALSE)
+        DT::datatable(data = d[, c(4, 3)],
+                      colnames = c('There are ___ numbers of employers', 'having ___ numbers of jobs'),
+                      rownames = FALSE,
+                      options = list(
+                        columnDefs = list(list(className = 'dt-center', targets = 0:1))))
           }
 
   })
